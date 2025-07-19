@@ -6,7 +6,7 @@ import card from "../assets/card-outline.png"
 import productlist from "../assets/product-list.png"
 import { IoClose } from "react-icons/io5";
 import home from "../assets/home.png"
-import icon from "../assets/icon.png"
+// import icon from "../assets/icon.png"
 import { call } from "../assets/index";
 import { useNavigate } from "react-router-dom";
 
@@ -137,7 +137,7 @@ function SideBar({ isOpen, setIsOpen }) {
             <h3 className="text-sm font-medium text-[#9CA3AF] mb-3">Admin</h3>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <img src={icon} className="w-5 h-5" />
+                <img src={card} className="w-5 h-5" />
                 <span>Admin role</span>
               </div>
               <div className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
