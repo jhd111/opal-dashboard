@@ -3,9 +3,10 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import login from "../assets/Login.png";
 import opal_logo from "../assets/opal_logo.png";
-import { NavLink } from "react-router-dom";
+import { NavLink,useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+  const navigate=useNavigate()
   const initialValues = {
     email: "",
     password: "",
@@ -13,8 +14,8 @@ const LoginPage = () => {
   };
 
   const validationSchema = Yup.object({
-    email: Yup.string().email("Invalid email address").required("Email is Required"),
-    password: Yup.string().required(" Password is Required"),
+    // email: Yup.string().email("Invalid email address").required("Email is Required"),
+    // password: Yup.string().required(" Password is Required"),
   });
 
   const handleSubmit = (values) => {
@@ -113,6 +114,7 @@ const LoginPage = () => {
                   </div>
 
                   <button
+                  onClick={()=>navigate("/dashboard")}
                     type="submit"
                     className="w-full bg-[#175CD3] inter text-white p-2 rounded-md mt-2 shadow-custom-light"
                   >
