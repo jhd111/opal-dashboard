@@ -23,6 +23,7 @@ import {
 
 function SideBar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("/dashboard/orders"); // Set default active tab
 
   return (
     <>
@@ -43,32 +44,84 @@ function SideBar({ isOpen, setIsOpen }) {
           <h3 className="text-sm font-mono lato text-[#6A717F] mb-3">Main Menue</h3>
             <div className="flex flex-col gap-1">
               <div 
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-3 p-3 bg-[#3651BF] lato font-bold text-white rounded-lg cursor-pointer">
+              onClick={() => {
+                navigate('/dashboard');
+                setActiveTab("/dashboard");
+              }}
+              className={`flex items-center gap-3 p-3  lato font-bold  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>
                 <img src={home} alt="" className="w-5 h-5"/>
                 <span className="font-medium">Dashboard</span>
               </div>
               <div 
-              onClick={() => navigate('/dashboard/orders')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
+              onClick={() => {
+                navigate('/dashboard/orders')
+                setActiveTab('/dashboard/orders')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/orders"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>
               <img src={cart} alt="" className="w-5 h-5"/>
                 <span>Order Management</span>
               </div>
               <div
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
+              onClick={() => {
+                navigate('/dashboard')
+                setActiveTab('/dashboard')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>
+             
               <img src={card} alt="" className="w-5 h-5"/>
                 <span>Payfast Payments</span>
               </div>
               <div
-              onClick={() => navigate("/dashboard/transactions")}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
+              
+              onClick={() => {
+                navigate('/dashboard/transactions')
+                setActiveTab('/dashboard/transactions')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/transactions"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>
                 <img src={card} alt="" className="w-5 h-5"/>
                 <span>Transaction</span>
               </div>
               <div 
-              onClick={() => navigate('/dashboard/contact')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
+              
+              onClick={() => {
+                navigate('/dashboard/contact')
+                setActiveTab('/dashboard/contact')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/contact"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>
                 <img src={call} alt="" className="w-5 h-5"/>
                 <span>Contact us queries</span>
               </div>
@@ -80,27 +133,68 @@ function SideBar({ isOpen, setIsOpen }) {
             <h3 className="text-sm font-mono lato text-[#6A717F] mb-3">Product</h3>
             <div className="flex flex-col gap-1">
               <div 
-              onClick={() => navigate('/dashboard/deals')}
-              className="flex items-center gap-3 p-3 text-[#6B7280] hover:bg-gray-50 rounded-lg cursor-pointer">
+              
+              onClick={() => {
+                navigate('/dashboard/deals')
+                setActiveTab('/dashboard/deals')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/deals"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>                
                 <FiPlus className="w-5 h-5" />
                 <span>Add Deals</span>
               </div>
               <div
-              onClick={() => navigate('/dashboard/productlist')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <img src={productlist} alt="" className="w-5 h-5"/>
+              
+              onClick={() => {
+                navigate('/dashboard/productlist')
+                setActiveTab('/dashboard/productlist')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/productlist"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>  
+                            <img src={productlist} alt="" className="w-5 h-5"/>
                 <span>Product List</span>
               </div>
               <div
-              onClick={() => navigate('/dashboard/voucher')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <img src={productlist} alt="" className="w-5 h-5"/>
+              
+              onClick={() => {
+                navigate('/dashboard/voucher')
+                setActiveTab('/dashboard/voucher')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/voucher"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>                  <img src={productlist} alt="" className="w-5 h-5"/>
                 <span>IT Vouchers</span>
               </div>
               <div
-               onClick={() => navigate("/dashboard/testingservices")}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <img src={productlist} alt="" className="w-5 h-5"/>
+               onClick={() => {
+                navigate('/dashboard/testingservices')
+                setActiveTab('/dashboard/testingservices')
+              }}
+              className=
+              {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+              ${
+                activeTab === "/dashboard/testingservices"
+                  ? "bg-[#3651BF] text-white"
+                  : "text-[#6A717F] hover:bg-gray-50"
+              }
+              `}>                 <img src={productlist} alt="" className="w-5 h-5"/>
                 <span>Testing Services</span>
               </div>
             </div>
@@ -111,21 +205,55 @@ function SideBar({ isOpen, setIsOpen }) {
             <h3 className="text-sm font-mono lato text-[#6A717F] mb-3">Manage</h3>
             <div className="flex flex-col gap-1">
               <div 
-              onClick={() => navigate("/dashboard/media")}
-              className="flex items-center gap-3 p-3 text-[#6B7280] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <FiPlus className="w-5 h-5" />
+             
+              
+              onClick={() => {
+               navigate('/dashboard/media')
+               setActiveTab('/dashboard/media')
+             }}
+             className=
+             {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+             ${
+               activeTab === "/dashboard/media"
+                 ? "bg-[#3651BF] text-white"
+                 : "text-[#6A717F] hover:bg-gray-50"
+             }
+             `}>                   <FiPlus className="w-5 h-5" />
                 <span>Upload Media</span>
               </div>
               <div
-              onClick={() => navigate("/dashboard/result")}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <FiPlus className="w-5 h-5" />
+              
+              
+              onClick={() => {
+               navigate('/dashboard/result')
+               setActiveTab('/dashboard/result')
+             }}
+             className=
+             {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+             ${
+               activeTab === "/dashboard/result"
+                 ? "bg-[#3651BF] text-white"
+                 : "text-[#6A717F] hover:bg-gray-50"
+             }
+             `}>   
+<FiPlus className="w-5 h-5" />
                 <span>Add Results</span>
               </div>
               <div
-              onClick={() => navigate('/dashboard/paymentinformation')}
-              className="flex items-center gap-3 p-3 lato text-[#6A717F] hover:bg-gray-50 rounded-lg cursor-pointer">
-                <img src={card} alt="" className="w-5 h-5"/>
+              
+              onClick={() => {
+               navigate('/dashboard/paymentinformation')
+               setActiveTab('/dashboard/paymentinformation')
+             }}
+             className=
+             {`flex items-center gap-3 p-3  lato  rounded-lg cursor-pointer 
+             ${
+               activeTab === "/dashboard/paymentinformation"
+                 ? "bg-[#3651BF] text-white"
+                 : "text-[#6A717F] hover:bg-gray-50"
+             }
+             `}>   
+<img src={card} alt="" className="w-5 h-5"/>
                 <span>Update Payment Details</span>
               </div>
              

@@ -497,7 +497,7 @@ const ReusableTable = ({
                 data.map((row, rowIndex) => (
                   <tr
                     key={rowIndex}
-                    className={` text-black font-medium lato lg:text-[13px] 2xl:text-lg  border-b border-[#D1D5DB]`}
+                    className={` text-[#555F7E] font-normal inter lg:text-[13px] 2xl:text-lg  border-b border-[#D1D5DB]`}
                   >
                     {columns.map((col, colIndex) => (
                       <td
