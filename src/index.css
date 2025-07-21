@@ -28,7 +28,20 @@
   }
 }
 
+/* Custom scrollbar for WebKit browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  height: 4px; /* Horizontal scrollbar thickness */
+}
 
+::-webkit-scrollbar-thumb {
+  background-color: #4755e5; /* Your custom color */
+  border-radius: 8px;
+
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1; 
+}
 
 
 

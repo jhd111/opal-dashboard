@@ -28,60 +28,50 @@ console.log("formState.name",formState)
 
   const columns = [
     { label: "No.", accessor: "no" },
-    { label: "Service Name", accessor: "serviceName" },
+    { label: "Deal Name", accessor: "dealName" },
+    { label: "Price", accessor: "price" },
+    { label: "Discount", accessor: "discount" },
+    { label: "Features", accessor: "features" },
     // { label: "Status", accessor: "status" },
+    // { label: "Actions", accessor: "actions" }, // This will be handled separately
   ];
 
   const data1 = [
     {
       no: 1,
-      serviceName: "Abu Dhabi Department of Health",
-      status: "active",
+      dealName: "PTE + SPMT",
+      price: "Rs. 60,000",
+      discount: "Rs. 17,000",
+      features: [
+        "PTE Voucher (Eligibility for Academic, UKVI, Core)",
+        "Pearson Scored Practice Mock Test Voucher",
+      ],
+      // status: true, // Use boolean for toggle status
+      // actions: ["edit", "delete"], // Define action types
     },
     {
       no: 2,
-      serviceName: "Dubai Healthcare City",
-      status: "inactive",
+      dealName: "PTE + SPMT",
+      price: "Rs. 60,000",
+      discount: "Rs. 17,000",
+      features: [
+        "PTE Voucher (Eligibility for Academic, UKVI, Core)",
+        "Pearson Scored Practice Mock Test Voucher",
+      ],
+      // status: true,
+      // actions: ["edit", "delete"],
     },
     {
       no: 3,
-      serviceName: "Sharjah Medical District",
-      status: "active",
-    },
-    {
-      no: 4,
-      serviceName: "Ras Al Khaimah Health Services",
-      status: "active",
-    },
-    {
-      no: 5,
-      serviceName: "Ajman Health Authority",
-      status: "inactive",
-    },
-    {
-      no: 6,
-      serviceName: "Fujairah Health Services",
-      status: "active",
-    },
-    {
-      no: 7,
-      serviceName: "Umm Al Quwain Health Services",
-      status: "active",
-    },
-    {
-      no: 8,
-      serviceName: "Al Ain Health Services",
-      status: "inactive",
-    },
-    {
-      no: 9,
-      serviceName: "NMC Health",
-      status: "active",
-    },
-    {
-      no: 10,
-      serviceName: "SEHA",
-      status: "inactive",
+      dealName: "PTE + SPMT",
+      price: "Rs. 60,000",
+      discount: "Rs. 17,000",
+      features: [
+        "PTE Voucher (Eligibility for Academic, UKVI, Core)",
+        "Pearson Scored Practice Mock Test Voucher",
+      ],
+      // status: false,
+      // actions: ["edit", "delete"],
     },
   ];
   const toggle = { toggle: true };

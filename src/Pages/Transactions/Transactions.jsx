@@ -29,9 +29,11 @@ const Transactions = () => {
     { label: "Voucher Name", accessor: "voucherName" },
     { label: "Quantity", accessor: "quantity" },
     { label: "Amount", accessor: "amount" },
-    // { label: "Date", accessor: "date" },
+    { label: "Date", accessor: "date" },
     { label: "Customer Name", accessor: "customerName" },
-    // { label: "Email/Phone Number", accessor: "emailPhone" },
+    { label: "Email/Phone Number", accessor: "emailPhone" },
+    { label: "Payment Type", accessor: "paymentType" },
+    { label: "Email/Phone Number", accessor: "emailPhone" },
     { label: "Payment Type", accessor: "paymentType" },
     
     
@@ -174,7 +176,7 @@ const Transactions = () => {
   const categories = ['IT Vouchers (240)', 'SPMT', 'PTE Vouchers', 'APEUni', 'Alfa PTE', 'Our Deals'];
 
   return (
-    <div className="flex flex-col gap-2  w-full">
+    <div className="flex flex-col gap-2  w-full ">
       <div className="flex justify-between items-center">
         <div className="lato text-[#023337] text-lg font-bold">Transactions</div>
 

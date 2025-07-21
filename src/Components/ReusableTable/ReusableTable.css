@@ -1,0 +1,47 @@
+.table-wrapper {
+    width: 100%;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  
+  .top-scrollbar,
+  .bottom-scrollbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+  }
+  
+  .scroll-content {
+    height: 1px; /* Minimal height to enable scrollbar */
+  }
+  
+  /* Custom scrollbar styling for WebKit browsers (Chrome, Safari) */
+  .table-container::-webkit-scrollbar,
+  .top-scrollbar::-webkit-scrollbar,
+  .bottom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .table-container::-webkit-scrollbar-thumb,
+  .top-scrollbar::-webkit-scrollbar-thumb,
+  .bottom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4a90e2; /* Custom color - adjust as needed */
+    border-radius: 4px;
+  }
+  
+  .table-container::-webkit-scrollbar-track,
+  .top-scrollbar::-webkit-scrollbar-track,
+  .bottom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  /* Custom scrollbar for Firefox */
+  .table-container,
+  .top-scrollbar,
+  .bottom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #4a90e2 #f1f1f1; /* Custom color - adjust as needed */
+  }

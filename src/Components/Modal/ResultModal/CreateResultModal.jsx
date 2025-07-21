@@ -151,7 +151,7 @@ const CreateResultModal = ({
         resultImage: "",
       });
     }
-  }, [isOpen, formik, setFormState]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

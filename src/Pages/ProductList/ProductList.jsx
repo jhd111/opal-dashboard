@@ -27,64 +27,30 @@ console.log("formState.name",formState)
     setTestingServiceModalOpen(true);
   };
 
-  const columns = [
-    { label: "No.", accessor: "no" },
-    { label: "Service Name", accessor: "serviceName" },
-    // Remove the status column since we're using toggleIcon instead
-  ];
+ const columns = [
+  { label: "No.", accessor: "no" },
+  { label: "Name", accessor: "name" },
+  { label: "Price", accessor: "price" },
+  { label: "Discount", accessor: "discount" },
+  { label: "Description", accessor: "description" },
+];
 
-  const data1 = [
-    {
-      no: 1,
-      serviceName: "Abu Dhabi Department of Health",
-      status: "active",
-    },
-    {
-      no: 2,
-      serviceName: "Dubai Healthcare City",
-      status: "inactive",
-    },
-    {
-      no: 3,
-      serviceName: "Sharjah Medical District",
-      status: "active",
-    },
-    {
-      no: 4,
-      serviceName: "Ras Al Khaimah Health Services",
-      status: "active",
-    },
-    {
-      no: 5,
-      serviceName: "Ajman Health Authority",
-      status: "inactive",
-    },
-    {
-      no: 6,
-      serviceName: "Fujairah Health Services",
-      status: "active",
-    },
-    {
-      no: 7,
-      serviceName: "Umm Al Quwain Health Services",
-      status: "active",
-    },
-    {
-      no: 8,
-      serviceName: "Al Ain Health Services",
-      status: "inactive",
-    },
-    {
-      no: 9,
-      serviceName: "NMC Health",
-      status: "active",
-    },
-    {
-      no: 10,
-      serviceName: "SEHA",
-      status: "inactive",
-    },
-  ];
+const data1 = [
+  {
+    no: 1,
+    name: "Alfa PTE Portal Access 30 Days",
+    price: "Rs. 60,000",
+    discount: "Rs. 0.00",
+    description: ["PTE Voucher (Eligibility for Academic, UKVI, Core)"],
+  },
+  {
+    no: 2,
+    name: "Alfa PTE Portal Access 60 Days",
+    price: "Rs. 60,000",
+    discount: "Rs. 0.00",
+    description: ["PTE Voucher (Eligibility for Academic, UKVI, Core)"],
+  },
+];
   const toggle = { toggle: true };
 
   const toggleIcon = {
@@ -131,7 +97,7 @@ console.log("formState.name",formState)
         modalTitle="Add New "
         status={toggle}
         toggleIcon={toggleIcon}  // This will add the toggle column
-        isOpen="true"
+        isOpen={true}
         onAddNewProduct={handleAddNewProduct}
         // setDeleteUser
         setOpenModal={setEditTestingServiceModalOpen}

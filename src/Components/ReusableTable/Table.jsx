@@ -73,8 +73,57 @@ const ReusableTable = ({
   optionalButtons,
   onTabChange,
   activeTab,
+  
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  // Refs for scrollbars and table container
+  const topScrollRef = useRef(null);
+  const tableContainerRef = useRef(null);
+  const bottomScrollRef = useRef(null);
+  // Synchronize scrollbars with table
+  useEffect(() => {
+    const tableContainer = tableContainerRef.current;
+    const topScroll = topScrollRef.current;
+    const bottomScroll = bottomScrollRef.current;
+
+    if (tableContainer && topScroll && bottomScroll) {
+      // Set the width of dummy content to match table's scroll width
+      const scrollWidth = tableContainer.scrollWidth;
+      topScroll.querySelector(".scroll-content").style.width = `${scrollWidth}px`;
+      bottomScroll.querySelector(".scroll-content").style.width = `${scrollWidth}px`;
+
+      // Function to sync scroll positions
+      const syncScroll = (source, targets) => {
+        targets.forEach((target) => {
+          target.scrollLeft = source.scrollLeft;
+        });
+      };
+
+      // Add scroll event listeners
+      tableContainer.addEventListener("scroll", () =>
+        syncScroll(tableContainer, [topScroll, bottomScroll])
+      );
+      topScroll.addEventListener("scroll", () =>
+        syncScroll(topScroll, [tableContainer, bottomScroll])
+      );
+      bottomScroll.addEventListener("scroll", () =>
+        syncScroll(bottomScroll, [tableContainer, topScroll])
+      );
+
+      // Cleanup event listeners
+      return () => {
+        tableContainer.removeEventListener("scroll", () =>
+          syncScroll(tableContainer, [topScroll, bottomScroll])
+        );
+        topScroll.removeEventListener("scroll", () =>
+          syncScroll(topScroll, [tableContainer, bottomScroll])
+        );
+        bottomScroll.removeEventListener("scroll", () =>
+          syncScroll(bottomScroll, [tableContainer, topScroll])
+        );
+      };
+    }
+  }, [data, columns]);
 
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -231,7 +280,7 @@ const ReusableTable = ({
     // <div className="w-full overflow-x-auto border border-[#A4A5AB1A] rounded-lg p-4">
 
     <div
-      className="w-full overflow-x-auto border bg-white border-[#A4A5AB1A] rounded-lg p-4"
+      className="w-full  border bg-white border-[#A4A5AB1A] rounded-lg p-4"
       style={{ boxShadow: "0px 1px 3px 0px rgba(0, 0, 0, 0.2)" }}
     >
       <div className="flex flex-col gap-2 lg:gap-0 lg:flex-row items-center justify-between mb-4">
@@ -408,7 +457,9 @@ const ReusableTable = ({
         <div className="text-red-500 text-center">Error Fetching Data</div>
       ) : (
         <>
-          <table className="w-full rounded-lg overflow-auto">
+         <div className="relative">
+    <div className="overflow-x-auto max-w-full">
+      <table className="min-w-max w-full table-auto rounded-lg">
             <thead >
               <tr className="bg-[#3651BF1A] rounded-md" >
                 {columns.map((col, index) => (
@@ -539,7 +590,7 @@ const ReusableTable = ({
                         {actions.edit && (
                           <button
                             onClick={() => {
-                              setDeleteUser(row); // Set the user for deletion
+                              onEdit(row); // Set the user for deletion
                               setOpenModal(true); // Close the modal
                               if (setIs_approve) {
                                 setIs_approve(true); // Update approval status if the function exists
@@ -589,7 +640,8 @@ const ReusableTable = ({
               )}
             </tbody>
           </table>
-
+</div>
+</div>
           {dataLength > 5 && (
             <Pagination
               currentPage={currentPage}

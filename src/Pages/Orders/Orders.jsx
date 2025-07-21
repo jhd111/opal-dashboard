@@ -29,13 +29,13 @@ const OrderList = () => {
     { label: "Voucher Name", accessor: "voucherName" },
     { label: "Quantity", accessor: "quantity" },
     { label: "Amount", accessor: "amount" },
-    // { label: "Date", accessor: "date" },
+    { label: "Date", accessor: "date" },
     { label: "Customer Name", accessor: "customerName" },
-    // { label: "Email/Phone Number", accessor: "emailPhone" },
+    { label: "Email/Phone Number", accessor: "email" },
     { label: "Payment Type", accessor: "paymentType" },
-    
-    
-    
+    { label: "Payment Info", accessor: "paymentInfo" },
+    { label: "Screenshot", accessor: "screenshot" },
+    { label: "Status", accessor: "status" },
   ];
 
   const data1 = [
@@ -46,9 +46,12 @@ const OrderList = () => {
       amount: "$60.76",
       date: "Jan 10, 2020 12:00PM",
       customerName: "Jacob Jones",
-      emailPhone: "example@gmail.com +92 330 2456719",
+      email: "example@gmail.com",
+      phone: "+92 330 2456719",
       paymentType: "Bank Transfer",
-      status: "completed"
+      paymentInfo: "Nil",
+      screenshot: true,
+      status: "Pending",
     },
     {
       orderId: "#53200002",
@@ -57,9 +60,12 @@ const OrderList = () => {
       amount: "$60.76",
       date: "Jan 10, 2020 12:00PM",
       customerName: "Jacob Jones",
-      emailPhone: "example@gmail.com +92 330 2456719",
+      email: "example@gmail.com",
+      phone: "+92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      paymentInfo: "**** **** **** 6788",
+      screenshot: true,
+      status: "Completed",
     },
     {
       orderId: "#53200002",
@@ -68,9 +74,12 @@ const OrderList = () => {
       amount: "$60.76",
       date: "Jan 10, 2020 12:00PM",
       customerName: "Jacob Jones",
-      emailPhone: "example@gmail.com +92 330 2456719",
+      email: "example@gmail.com",
+      phone: "+92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      paymentInfo: "**** **** **** 5788",
+      screenshot: true,
+      status: "Pending",
     },
     {
       orderId: "#53200002",
@@ -79,45 +88,28 @@ const OrderList = () => {
       amount: "$60.76",
       date: "Jan 10, 2020 12:00PM",
       customerName: "Jacob Jones",
-      emailPhone: "example@gmail.com +92 330 2456719",
-      paymentType: "Credit/Debit Card",
-      status: "completed"
-    },
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      emailPhone: "example@gmail.com +92 330 2456719",
-      paymentType: "Credit/Debit Card",
-      status: "completed"
-    },
-    {
-      orderId: "#53200003",
-      voucherName: "CompTIA Voucher",
-      quantity: "01",
-      amount: "$30.38",
-      date: "Jan 11, 2020 10:30AM",
-      customerName: "Sarah Wilson",
-      emailPhone: "sarah@gmail.com +92 330 1234567",
+      email: "example@gmail.com",
+      phone: "+92 330 2456719",
       paymentType: "Bank Transfer",
-      status: "pending"
+      paymentInfo: "Nil",
+      screenshot: true,
+      status: "Pending",
     },
     {
-      orderId: "#53200004",
+      orderId: "#53200002",
       voucherName: "CompTIA Voucher",
-      quantity: "03",
-      amount: "$91.14",
-      date: "Jan 12, 2020 02:15PM",
-      customerName: "Mike Johnson",
-      emailPhone: "mike@gmail.com +92 330 7654321",
+      quantity: "02",
+      amount: "$60.76",
+      date: "Jan 10, 2020 12:00PM",
+      customerName: "Jacob Jones",
+      email: "example@gmail.com",
+      phone: "+92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
-    }
+      paymentInfo: "**** **** **** 6788",
+      screenshot: true,
+      status: "Pending",
+    },
   ];
-
   const toggle = { toggle: true };
 
   const toggleIcon = {
@@ -322,7 +314,7 @@ const OrderList = () => {
         activeTab={activeTab}
         modal={false}
         modalTitle="Add New Product"
-        status={toggle}
+        // status={toggle}
         toggleIcon={toggleIcon}
         isOpen="true"
         onAddNewProduct={handleAddNewProduct}
