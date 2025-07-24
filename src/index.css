@@ -26,6 +26,9 @@
   .boxShadow {
     box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.2);
   }
+  .bg-gradient-custom {
+    background: linear-gradient(to bottom, #2BB2FE, #22CAAD);
+  }
 }
 
 /* Custom scrollbar for WebKit browsers (Chrome, Edge, Safari) */

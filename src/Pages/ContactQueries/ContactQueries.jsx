@@ -136,15 +136,7 @@ console.log("formState.name",formState)
         compose={true}
       />
 
-      {/* ------------------Add Modal------------------  */}
-      <Deals
-        isOpen={isDealModalOpen}
-        onClose={() => setDealModalOpen(false)}
-        title="Add New Deal"
-        nameLabel="Exam Name"
-        formState={formState}
-        setFormState={setFormState}
-      />
+     
       {/* ------------------Edit Modal------------------  */}
       <EditDeals
         isOpen={isEditDealModalOpen}

@@ -18,6 +18,7 @@ import Home from './Pages/Home/Home';
 import ContactQueries from './Pages/ContactQueries/ContactQueries';
 import PaymentInformation from './Pages/My Payment Informations/MyPaymentInformations';
 import Transactions from './Pages/Transactions/Transactions';
+import ProfileUpdate from './Pages/Profile/profile';
 function App() {
   return (
     <Router>
@@ -41,6 +42,7 @@ function App() {
           <Route path='/dashboard/contact' element={<ContactQueries/>}/>
           <Route path='/dashboard/paymentinformation' element={<PaymentInformation/>}/>
           <Route path="/dashboard/transactions" element={<Transactions/>}/>
+          <Route path="/dashboard/admin-profile" element={<ProfileUpdate/>}/>
           </Route>
       </Routes>
     </Router>

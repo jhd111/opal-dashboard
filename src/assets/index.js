@@ -5,6 +5,8 @@ import file from "../assets/Images/file.png"
 import uploadButton from "../assets/Images/uploadbutton.png"
 import checkout from "../assets/Images/checkout.png"
 import call from "../assets/Images/call.png"
+import home from "../assets/Images/home-4-fill.svg"
+import message2 from "../assets/Images/messages-2.png"
 export {
     edit,
     deleteimg,
@@ -12,5 +14,7 @@ export {
     file,
     uploadButton,
     checkout,
-    call
+    call,
+    home,
+    message2
 }

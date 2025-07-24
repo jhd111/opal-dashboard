@@ -166,7 +166,7 @@ const TableExample = () => {
       <div className="flex justify-between items-center">
         <div className="lato text-[#023337] text-lg font-bold">Result List</div>
 
-        <div className="inline-flex bg-white border border-[#F0F1F3] p-2 rounded-md">
+        {/* <div className="inline-flex bg-white border border-[#F0F1F3] p-2 rounded-md">
           {dateFilterButtons.map((button, index) => (
             <button
               key={index}
@@ -181,7 +181,7 @@ const TableExample = () => {
               {button.label}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* ------------------card------------------ */}
@@ -215,6 +215,7 @@ const TableExample = () => {
         borderRadius={true}
         download={false}
         search={true}
+        filter={false}
         pagination={true}
         optionalButtons={optionalButtons}
         onTabChange={handleTabChange}

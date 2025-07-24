@@ -4,7 +4,7 @@ import { CgSortAz } from "react-icons/cg";
 
 import arrowDowncircle from "../../assets/Oval.png";
 import doc from "../../assets/Oval.png";
-import message2 from "../../assets/Oval.png";
+import {message2} from "../../assets/index";
 import {plus} from "../../assets/index"
 
 
@@ -53,6 +53,7 @@ const ReusableTable = ({
   SearchLoading,
   setDeleteUser,
   setOpenModal,
+  filter,
   filterOptions,
   setSelectedFilter,
   selectedFilter,
@@ -383,10 +384,11 @@ const ReusableTable = ({
               <span className="lexend">{categoryTitle}</span>
             </button>
           )}
+          
           <div className="flex justify-between items-center gap-2">
 
              {/* Filter Button */}
-          
+             {filter &&
              <div className="inline-block text-left z-50">
               {/* Filter Button */}
               <button
@@ -427,7 +429,7 @@ const ReusableTable = ({
                 </div>
               )}
             </div>
-
+}
 
           {modal && (
             <button
@@ -444,6 +446,7 @@ const ReusableTable = ({
 
          
             </div>
+
         </div>
       </div>
 
