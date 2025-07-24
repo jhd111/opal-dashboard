@@ -18,7 +18,7 @@ import Home from './Pages/Home/Home';
 import ContactQueries from './Pages/ContactQueries/ContactQueries';
 import PaymentInformation from './Pages/My Payment Informations/MyPaymentInformations';
 import Transactions from './Pages/Transactions/Transactions';
-import ProfileUpdate from './Pages/Profile/profile';
+import ProfileUpdate from './Pages/Profile/Profile';
 function App() {
   return (
     <Router>
