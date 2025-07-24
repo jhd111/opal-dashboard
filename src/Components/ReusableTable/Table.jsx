@@ -4,8 +4,8 @@ import { CgSortAz } from "react-icons/cg";
 
 import arrowDowncircle from "../../assets/Oval.png";
 import doc from "../../assets/Oval.png";
-import {message2} from "../../assets/index";
-import {plus} from "../../assets/index"
+
+import {plus,message} from "../../assets/index"
 
 
 
@@ -366,7 +366,7 @@ const ReusableTable = ({
               className="flex items-center space-x-1 px-4 py-2 bg-[#4755E5] border border-[#A4A5AB1A] text-white rounded-full cursor-pointer focus:outline-none"
             >
               <span>
-                <img src={message2} alt="" className="w-6 h-7 text-white" />
+                <img src={message} alt="" className="w-6 h-7 text-white" />
               </span>
               <span>Compose</span>
             </button>

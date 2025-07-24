@@ -6,7 +6,7 @@ import uploadButton from "../assets/Images/uploadbutton.png"
 import checkout from "../assets/Images/checkout.png"
 import call from "../assets/Images/call.png"
 import home from "../assets/Images/home-4-fill.svg"
-// import message2 from "../assets/Images/messagesss.png"
+import message from "../assets/Images/messagesss.png"
 export {
     edit,
     deleteimg,
@@ -16,5 +16,5 @@ export {
     checkout,
     call,
     home,
-    // message2
+    message
 }
