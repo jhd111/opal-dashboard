@@ -31,6 +31,8 @@
   }
 }
 
+
+
 /* Custom scrollbar for WebKit browsers (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
   height: 4px; /* Horizontal scrollbar thickness */

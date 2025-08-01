@@ -7,11 +7,12 @@ import doc from "../../assets/Oval.png";
 
 import {plus,message} from "../../assets/index"
 
-
-
 import { Calendar, ChevronUp, Check } from "lucide-react";
 
 import Loader from "../Loader/Loader";
+
+import { toast } from "react-hot-toast";
+
 
 // import DateRangePicker from "../Calender/CustomCalender"
 import Pagination from "./Pagination";
@@ -36,9 +37,11 @@ const ReusableTable = ({
   onViewIconClick,
   onViewIconClickCheck,
 
+  setDeleteModal,
   modal,
   onAddNewProduct,
   onEdit,
+  onToggle,
   toggleIcon,
   status,
   modalTitle,
@@ -74,6 +77,7 @@ const ReusableTable = ({
   optionalButtons,
   onTabChange,
   activeTab,
+  openCompose,
   
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -319,7 +323,7 @@ const ReusableTable = ({
               type="search"
               className="px-4 py-2 pr-10 text-sm text-[#6A717F] rounded-md bg-[#F9FAFB] w-full"
               onChange={(e) => setSearchTable(e.target.value)}
-              placeholder="Enter Student or result"
+              placeholder="Enter for search"
             />
             <svg
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -363,6 +367,7 @@ const ReusableTable = ({
           {compose && (
             <button
               type="button"
+              onClick={()=>openCompose?.()}
               className="flex items-center space-x-1 px-4 py-2 bg-[#4755E5] border border-[#A4A5AB1A] text-white rounded-full cursor-pointer focus:outline-none"
             >
               <span>
@@ -484,15 +489,17 @@ const ReusableTable = ({
                 )}
 
                 {/* Always render the Action column */}
-                {(actions.edit || actions.delete || actions.viewDetails) && (
+                { actions &&
+                (actions.edit || actions.delete || actions.viewDetails) && (
                   <th className="w-auto px-4 py-2 lato font-bold text-[#023337] lg:text-[12px] 2xl:text-[16px] text-center">
                     Action
                   </th>
-                )}
+                )
+}
               </tr>
             </thead>
             <tbody>
-              {data && data.length === 0 ? (
+              {data && data?.length === 0 ? (
                 <tr className="text-red-500 text-center w-full mt-4 flex justify-center items-center">
                   <td>No Record Found</td>
                 </tr>
@@ -507,7 +514,28 @@ const ReusableTable = ({
                         key={colIndex}
                         className={`${col.className} px-4 py-2 cursor-pointer`}
                       >
-                        {col.accessor === "docs" ? (
+                        {
+                        
+                        ["email", "phone", "phone_number","phoneNumber"].includes(col.accessor) ? (
+                          <div className="group inline-flex items-center gap-2">
+                            <span>{row[col.accessor]}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(row[col.accessor]);
+                                toast.success(`${col.label || col.accessor} copied to clipboard`);
+                              }}
+                              className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-600 p-1"
+                              title="Copy"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        )
+
+                        :
+                        col.accessor === "docs" ? (
                           row[col.accessor] ? (
                             <Link
                               to="/dashboard/ConsumerDetail"
@@ -536,14 +564,15 @@ const ReusableTable = ({
                             )}
                             <span>{row.name?.name || row[col.accessor]}</span>
                           </div>
-                        ) : col.accessor === "status" ? (
+                        ) : col.accessor === "status" ?
+                         (
                           // Conditional styling based on the status value
                           <span
                             className={`px-4 py-1 rounded-sm font-normal lexend ${
-                              row[col.accessor] === "Fulfill" ||
+                              row[col.accessor] === "Completed" ||
                               row[col.accessor] === "In Stock"
                                 ? "text-[#3FC28A] bg-[#3FC28A1A]"
-                                : row[col.accessor] === "In progress"
+                                : row[col.accessor] === "Pending"
                                 ? "text-[#EFBE12] bg-[#EFBE121A]"
                                 : row[col.accessor] === "Cancel" ||
                                   row[col.accessor] === "Out Of Stock"
@@ -555,21 +584,40 @@ const ReusableTable = ({
                           </span>
                         ) : (
                           row[col.accessor]
-                        )}
+                        )
+                        
+                        }
                       </td>
                     ))}
 
-                    {/* Conditionally render the status toggle column */}
+                    {/* FIXED: Conditionally render the status toggle column */}
                     {status && (
                       <td className="px-4 py-2 flex items-center justify-center space-x-2 mt-1">
-                        <button className="text-black hover:text-red-700 cursor-pointer">
-                          {toggleIcon.status}
-                        </button>
+                        {/* Check if toggleIcon.status is a function */}
+                        {typeof toggleIcon?.status === 'function' ? (
+                          toggleIcon.status(row)
+                        ) : (
+                          // Fallback: Create a proper toggle switch
+                          <div className="flex items-center space-x-2">
+                            <label className="inline-flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="sr-only peer" 
+                                checked={row.status === true || row.status === "true" || row.status === 1}
+                                onChange={() => onToggle(row.status, row.id)}
+                              />
+                              <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
+                            </label>
+                            <span className="text-sm text-gray-600">
+                              {(row.status === true || row.status === "true" || row.status === 1) ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+                        )}
                       </td>
                     )}
 
                     {/* Render action buttons for Edit, Delete, View Details */}
-                    {(actions.viewDetails ||
+                    {actions && (actions.viewDetails ||
                       actions.edit ||
                       actions.delete ||
                       actions.viewicon) && (
@@ -617,7 +665,7 @@ const ReusableTable = ({
                             // }}
                             onClick={() => {
                               setDeleteUser(row); // Set the user for deletion
-                              setOpenModal(true); // Close the modal
+                              setDeleteModal(true); // Close the modal
                               if (setIs_approve) {
                                 setIs_approve(false); // Update approval status if the function exists
                               }

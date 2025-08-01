@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import InputFields from "../../InputFields/InputFields";
+import { AddResultMutation} from "../../../Services/AddResultService"
+import toast, { Toaster } from "react-hot-toast";
+import Loader from "../../Loader/Loader"
 
 const AddNewTestingService = ({
   isOpen,
@@ -47,16 +50,39 @@ const AddNewTestingService = ({
     };
   }, [isOpen]);
 
+  const mutation = AddResultMutation();
   const formik = useFormik({
     initialValues: {
-      name: formState.name || "",
+      name: "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
     }),
     onSubmit: (values) => {
-      console.log("Form values:", { ...values });
-      handleSubmit(values);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      
+      if (values.resultImage) {
+        formData.append("image", values.resultImage);
+      }
+
+      mutation.mutate(
+        {
+          payload: formData,
+          path: "admin/create-testing-service/",
+          queryKey: "testing-services", // 👈 Add this to enable refetch
+        },
+        {
+          onSuccess: (data) => {
+            toast.success("Service created successfully!");
+            formik.resetForm(); // Reset form after successful submission
+            onClose(); // Close modal on success
+          },
+          onError: (error) => {
+            toast.error("Failed to create service. Please try again.");
+          },
+        }
+      );
     },
   });
 
@@ -101,14 +127,16 @@ const AddNewTestingService = ({
                 type="button"
                 onClick={onClose}
                 className="mr-2 px-4 py-2 text-gray-600 border border-[#A4A5AB33] rounded-full hover:text-gray-800 cursor-pointer"
+                disabled={mutation.isPending} // Disable cancel button during loading
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="px-8 py-2 bg-[#4755E5] text-white rounded-full cursor-pointer"
-              >
-                Add
+                disabled={mutation.isPending} // Disable cancel button during loading
+             >
+                {mutation.isPending ? "Adding..." : "Add"}
               </button>
             </div>
           </form>

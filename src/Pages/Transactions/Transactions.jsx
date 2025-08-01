@@ -33,9 +33,8 @@ const Transactions = () => {
     { label: "Customer Name", accessor: "customerName" },
     { label: "Email/Phone Number", accessor: "emailPhone" },
     { label: "Payment Type", accessor: "paymentType" },
-    { label: "Email/Phone Number", accessor: "emailPhone" },
-    { label: "Payment Type", accessor: "paymentType" },
     
+    { label: "Status", accessor: "status" },
     
     
   ];
@@ -50,7 +49,7 @@ const Transactions = () => {
       customerName: "Jacob Jones",
       emailPhone: "example@gmail.com +92 330 2456719",
       paymentType: "Bank Transfer",
-      status: "completed"
+      status: "Completed"
     },
     {
       orderId: "#53200002",
@@ -61,7 +60,7 @@ const Transactions = () => {
       customerName: "Jacob Jones",
       emailPhone: "example@gmail.com +92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      status: "Completed"
     },
     {
       orderId: "#53200002",
@@ -72,7 +71,7 @@ const Transactions = () => {
       customerName: "Jacob Jones",
       emailPhone: "example@gmail.com +92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      status: "Completed"
     },
     {
       orderId: "#53200002",
@@ -83,7 +82,7 @@ const Transactions = () => {
       customerName: "Jacob Jones",
       emailPhone: "example@gmail.com +92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      status: "Completed"
     },
     {
       orderId: "#53200002",
@@ -94,7 +93,7 @@ const Transactions = () => {
       customerName: "Jacob Jones",
       emailPhone: "example@gmail.com +92 330 2456719",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      status: "Completed"
     },
     {
       orderId: "#53200003",
@@ -105,7 +104,7 @@ const Transactions = () => {
       customerName: "Sarah Wilson",
       emailPhone: "sarah@gmail.com +92 330 1234567",
       paymentType: "Bank Transfer",
-      status: "pending"
+      status: "Pending"
     },
     {
       orderId: "#53200004",
@@ -116,11 +115,11 @@ const Transactions = () => {
       customerName: "Mike Johnson",
       emailPhone: "mike@gmail.com +92 330 7654321",
       paymentType: "Credit/Debit Card",
-      status: "completed"
+      status: "Completed"
     }
   ];
 
-  const toggle = { toggle: true };
+  const toggle = { toggle: false };
 
   const toggleIcon = {
     status: (
@@ -152,7 +151,7 @@ const Transactions = () => {
     { label: `Pending (${pendingData.length})`, value: "pending" },
   ];
 
-  const actions = { viewDetails: false, edit: true, delete: true };
+  const actions = { viewDetails: false, edit: false, delete: false };
 
   const icons = {
     viewDetails: <MdKeyboardArrowRight />,
@@ -173,7 +172,6 @@ const Transactions = () => {
     // any other logic on click
   };
 
-  const categories = ['IT Vouchers (240)', 'SPMT', 'PTE Vouchers', 'APEUni', 'Alfa PTE', 'Our Deals'];
 
   return (
     <div className="flex flex-col gap-2  w-full ">
@@ -258,36 +256,12 @@ const Transactions = () => {
               </div>
               <p className="text-sm text-gray-500">Last 7 days</p>
             </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
+           
           </div>
         </div>
       </div>
 
-      {/* ------------------Category Filter Buttons (Updated to match image)------------------ */}
-      {/* <div className="bg-gray-100 p-1 rounded-lg mb-3 w-full lg:w-[65%]">
-        <div className="flex gap-1 overflow-x-auto">
-          {categories.map((category, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveCategoryTab(index)}
-              className={`px-4 py-2 rounded-md whitespace-nowrap text-sm font-medium transition-all duration-200 ${
-                index === activeCategoryTab
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'bg-transparent text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div> */}
-
+      
       {/* ------------------Table------------------ */}
       <Table
         columns={columns}
@@ -303,8 +277,8 @@ const Transactions = () => {
         activeTab={activeTab}
         modal={false}
         modalTitle="Add New Product"
-        status={toggle}
-        toggleIcon={toggleIcon}
+        // status={toggle}
+        // toggleIcon={toggleIcon}
         isOpen="true"
         onAddNewProduct={handleAddNewProduct}
       />

@@ -4,6 +4,9 @@ import * as Yup from "yup";
 import login from "../assets/Login.png";
 import opal_logo from "../assets/opal_logo.png";
 import { useNavigate } from "react-router-dom";
+import Base_url from "../Base_url/Baseurl"
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 
 const ForgetPassword = () => {
 
@@ -20,13 +23,55 @@ const ForgetPassword = () => {
     // password: Yup.string().required(" Password is Required"),
   });
 
-  const handleSubmit = (values) => {
-    console.log("Form Values", values);
-    navigate("/otp-verification")
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.post(
+        `${Base_url}/api/admin/forgot-password/`,
+
+        {
+          email: values.email,
+          
+        }
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+localStorage.setItem("email",values.email)
+        // Save token and remember flag
+       
+
+        toast.success("OTP sent successfully", {
+          position: "top-center",
+          duration: 3000,
+        });
+
+        setTimeout(() => {
+          navigate("/otp-verification");
+        }, 1000);
+      }
+      else{
+        toast.error(" Please try again.",
+        {
+          position: "top-center",
+          duration: 3000,
+        }
+      );
+      }
+    } catch (error) {
+      toast.error(" Please try again.",
+        {
+          position: "top-center",
+          duration: 3000,
+        }
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
+      
       {/* Left Image */}
       <div className="lg:w-1/2 hidden md:block h-screen">
         <img
@@ -84,14 +129,14 @@ const ForgetPassword = () => {
 
                   <button
                     type="submit"
-                    className="w-full bg-[#175CD3] inter text-white p-2 rounded-md mt-2 shadow-custom-light"
+                    className="cursor-pointer w-full bg-[#175CD3] inter text-white p-2 rounded-md mt-2 shadow-custom-light"
                   >
                     Send OTP
                   </button>
                 </Form>
               )}
             </Formik>
-            <div className="text-[#1849A9] text-center inter font-semibold">
+            <div onClick={()=>navigate("/")} className="text-[#1849A9] text-center inter font-semibold cursor-pointer">
               Back To Login
             </div>
           </div>

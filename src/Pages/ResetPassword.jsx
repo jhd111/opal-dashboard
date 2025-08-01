@@ -5,8 +5,15 @@ import * as Yup from "yup";
 import login from "../assets/Login.png";
 import opal_logo from "../assets/opal_logo.png";
 import { useNavigate } from "react-router-dom";
-
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Base_url from "../Base_url/Baseurl"
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 const ResetPassword = () => {
+
+  const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const navigate=useNavigate()
     const initialValues = {
@@ -21,12 +28,57 @@ const ResetPassword = () => {
           .oneOf([Yup.ref("password"), null], "Passwords must match")
           .required("Confirm Password is Required"),
       });
-      
 
-  const handleSubmit = (values) => {
-    console.log("Form Values", values);
-    navigate("/reset-successful")
-  };
+      const email=localStorage.getItem("email")
+      
+      const handleSubmit = async (values, { setSubmitting }) => {
+        try {
+          const response = await axios.post(
+            `${Base_url}/api/admin/confirm-password/`,
+    
+            {
+              email:email,
+              new_password: values.password,
+              confirm_password:values.confirmPassword
+              
+            }
+          );
+    
+          if (response.status === 200) {
+            const data = response.data;
+
+            // Save token and remember flag
+           
+    
+            toast.success("Password reset successfully", {
+              position: "top-center",
+              duration: 3000,
+            });
+    
+            setTimeout(() => {
+              navigate("/reset-successful")
+            }, 1000);
+          }
+          else{
+            toast.error(" Please try again.",
+            {
+              position: "top-center",
+              duration: 3000,
+            }
+          );
+          }
+        } catch (error) {
+          toast.error(" Please try again.",
+            {
+              position: "top-center",
+              duration: 3000,
+            }
+          );
+        } finally {
+          setSubmitting(false);
+        }
+      };
+ 
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
@@ -54,67 +106,83 @@ const ResetPassword = () => {
             </h2>
             <p  className="inter font-normal text-sm leading-5 tracking-normal text-[#667085]">
                 Type your new password to continue.</p>
-            <Formik
-              initialValues={initialValues}
-              validationSchema={validationSchema}
-              onSubmit={handleSubmit}
-            >
-              {() => (
-                <Form className="space-y-4">
-                  <div>
-                    <label
-                      htmlFor="password"
-                      className="block font-medium text-sm leading-5 tracking-normal text-[#344054] mb-1 mt-4"
-                    >
-                     Password
-                    </label>
+                <Formik
+  initialValues={initialValues}
+  validationSchema={validationSchema}
+  onSubmit={handleSubmit}
+>
+  {() => (
+    <Form className="space-y-4">
+      {/* Password */}
+      <div className="relative">
+        <label
+          htmlFor="password"
+          className="block font-medium text-sm leading-5 tracking-normal text-[#344054] mb-1 mt-4"
+        >
+          Password
+        </label>
 
-                    <Field
-                      type="password"
-                      name="password"
-                      id="password"
-                      className="mt-1 h-10 w-full border border-[#D0D5DD] rounded-md p-2 text-sm shadow-custom-light"
-                      placeholder="password"
-                    />
-                    <ErrorMessage
-                      name="password"
-                      component="div"
-                      className="text-red-500 mt-1 text-xs"
-                    />
-                  </div>
+        <Field
+          type={showPassword ? "text" : "password"}
+          name="password"
+          id="password"
+          className="mt-1 h-10 w-full border border-[#D0D5DD] rounded-md p-2 text-sm shadow-custom-light pr-10"
+          placeholder="Password"
+        />
+        <button
+          type="button"
+          className="absolute top-10 right-3 text-gray-500"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </button>
+        <ErrorMessage
+          name="password"
+          component="div"
+          className="text-red-500 mt-1 text-xs"
+        />
+      </div>
 
-                  <div>
-                    <label
-                      htmlFor="confirmPassword"
-                      className="block font-medium text-sm leading-5 tracking-normal text-[#344054] mb-1"
-                    >
-                     Confirm Password
-                    </label>
-                    <Field
-                      type="password"
-                      name="confirmPassword"
-                      id="confirmPassword"
-                      className="mt-1 h-10 w-full border border-[#D0D5DD] rounded-md p-2 text-sm shadow-custom-light"
-                      placeholder="Enter your password"
-                    />
-                    <ErrorMessage
-                      name="confirmPassword"
-                      component="div"
-                      className="text-red-500 mt-1 text-xs"
-                    />
-                  </div>
+      {/* Confirm Password */}
+      <div className="relative">
+        <label
+          htmlFor="confirmPassword"
+          className="block font-medium text-sm leading-5 tracking-normal text-[#344054] mb-1"
+        >
+          Confirm Password
+        </label>
+        <Field
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          id="confirmPassword"
+          className="mt-1 h-10 w-full border border-[#D0D5DD] rounded-md p-2 text-sm shadow-custom-light pr-10"
+          placeholder="Confirm Password"
+        />
+        <button
+          type="button"
+          className="absolute top-10 right-3 text-gray-500"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+        </button>
+        <ErrorMessage
+          name="confirmPassword"
+          component="div"
+          className="text-red-500 mt-1 text-xs"
+        />
+      </div>
 
-                
-                  <button
-                    type="submit"
-                    className="w-full bg-[#175CD3] inter text-white p-2 rounded-md mt-2 shadow-custom-light"
-                  >
-                    Save Password
-                  </button>
-                </Form>
-              )}
-            </Formik>
-            <div className="text-[#1849A9] text-center inter font-semibold mt-3">
+      <button
+        type="submit"
+        className="w-full bg-[#175CD3] inter text-white p-2 rounded-md mt-2 shadow-custom-light"
+      >
+        Save Password
+      </button>
+    </Form>
+  )}
+</Formik>
+
+            <div onClick={()=>navigate("/")} className="text-[#1849A9] text-center inter font-semibold mt-3">
               Back To Login
             </div>
           </div>

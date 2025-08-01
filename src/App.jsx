@@ -19,9 +19,32 @@ import ContactQueries from './Pages/ContactQueries/ContactQueries';
 import PaymentInformation from './Pages/My Payment Informations/MyPaymentInformations';
 import Transactions from './Pages/Transactions/Transactions';
 import ProfileUpdate from './Pages/Profile/Profile';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import Inventory from './Pages/Inventory/Inventory';
+import AlphaPte from './Pages/Orders/AlphaPte';
+import Alpha from './Pages/Alpa/Alpha';
+const queryClient = new QueryClient();
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Smooth scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth", // This adds the animation
+    });
+  }, [pathname]);
+
+  return null;
+};
 function App() {
   return (
+    <QueryClientProvider client={queryClient}>
+      
     <Router>
+    <ScrollToTop/>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgetPassword />} />
@@ -43,9 +66,12 @@ function App() {
           <Route path='/dashboard/paymentinformation' element={<PaymentInformation/>}/>
           <Route path="/dashboard/transactions" element={<Transactions/>}/>
           <Route path="/dashboard/admin-profile" element={<ProfileUpdate/>}/>
+          <Route path='/dashboard/inventory' element={<Inventory/>}/>
+          <Route path='/dashboard/alpha' element={<Alpha/>}/>
           </Route>
       </Routes>
     </Router>
+    </QueryClientProvider>
   );
 }
 

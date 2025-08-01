@@ -1,12 +1,62 @@
 import React, { useState, useEffect } from "react";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import { MoreHorizontal, Filter } from "lucide-react";
-import { CircularProgressbarWithChildren, buildStyles } from "react-circular-progressbar";
+import {
+  CircularProgressbarWithChildren,
+  buildStyles,
+} from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { fetchResults } from "../../Services/GetResults";
+
+import Loader from "../../Components/Loader/Loader"
+
+import FormatNumber from "../../Components/Formatter/Format";
 
 const Dashboard = () => {
+  const [parentActiveTab, setparentActiveTab] = useState("week");
+  const [days, setDays] = useState(7); // Default to 7 days for week
+
+  const {
+    data: ResultsApi,
+    isLoading,
+    error,
+  } = fetchResults("total-revenue", "/api/admin/total-revenue/");
+ 
+  const {
+    data: PayFastPaymentCount,
+    isLoading:PayFastPaymentLoading,
+    error:PayFastPaymentError,
+  } = fetchResults("total-revenue", "/api/admin/total-payment-count/");
+
+  const {
+    data: graphData,
+    isLoading:graphDataLoading,
+    error:graphDataError,
+    refetch: refetchGraphData,
+  } = fetchResults("graph-Data", `/api/admin/graph-data/?days=${days}`);
+
+  const rawStatusCounts = PayFastPaymentCount?.data?.status_counts || {};
+
+  const filteredCards = Object.entries(rawStatusCounts)
+    .filter(([status]) => status === "PENDING" || status === "COMPLETED")
+    .map(([status, value]) => ({
+      status,
+      count: value.count,
+      total_amount: value.total_amount,
+    }));
+  
+  // Separate them
+  const completed =(filteredCards.find(item => item.status === "COMPLETED") || { count: 0, total_amount: 0 });
+  const pending = filteredCards.find(item => item.status === "PENDING") || { count: 0, total_amount: 0 };
+
   const percentage = 75.55;
-  const [parentActiveTab, setparentActiveTab] = useState("Voucher");
   const [chartData, setChartData] = useState([
     { name: "Sun", value: 15 },
     { name: "Mon", value: 25 },
@@ -21,10 +71,10 @@ const Dashboard = () => {
   const [dailyEarnings, setDailyEarnings] = useState(150);
   const [target, setTarget] = useState(100000);
   const [revenue, setRevenue] = useState(75000);
-  const [thisWeek, setThisWeek] = useState(1500)
+  const [thisWeek, setThisWeek] = useState(1500);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [monthlyTarget, setMonthlyTarget] = useState('');
+  const [monthlyTarget, setMonthlyTarget] = useState("");
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -81,15 +131,25 @@ const Dashboard = () => {
       image: "📄",
     },
   ];
+  
   const dateFilterButtons = [
-    { label: "This Week", value: "Voucher" },
-    { label: "Last Week", value: "Vendor" },
+    { label: "This Week", value: "week" },
+    { label: "This Month", value: "month" },
   ];
 
   const onTabChange = (value) => {
     setparentActiveTab(value);
-    // any other logic on click
+    // Set days based on selected tab and refetch data
+    const newDays = value === "week" ? 7 : 30;
+    setDays(newDays);
   };
+
+  // Effect to refetch data when days change
+  useEffect(() => {
+    if (refetchGraphData) {
+      refetchGraphData();
+    }
+  }, [days, refetchGraphData]);
 
   // Fetch data from API (simulated with static data for now)
   useEffect(() => {
@@ -118,127 +178,121 @@ const Dashboard = () => {
   const getArcPath = (progress) => {
     const angle = (progress / 100) * 180;
     const radius = 35;
-    const x = 80 + radius * Math.cos((angle - 90) * Math.PI / 180);
-    const y = 70 + radius * Math.sin((angle - 90) * Math.PI / 180);
+    const x = 80 + radius * Math.cos(((angle - 90) * Math.PI) / 180);
+    const y = 70 + radius * Math.sin(((angle - 90) * Math.PI) / 180);
     return `M 10 70 A ${radius} ${radius} 0 ${angle > 180 ? 1 : 0},1 ${x} ${y}`;
   };
 
+  // Get API data with fallbacks
+  const apiData = graphData?.data || {};
+  const vouchersTotal = apiData?.vouchers?.total || 0;
+  const dealsTotal = apiData?.deals?.total || 0;
+  const alphaPteTotal = apiData?.alpha_pte?.total || 0;
+  
   return (
     <div className="min-h-screen bg-gray-50 p-3">
       <div className="max-w-7xl mx-auto">
         {/* Top Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Total Revenue Card */}
-          <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col justify-between gap-2">
-          <div className="flex justify-between items-start ">
-              <div>
-                <h3 className="text-gray-900 text-lg font-semibold">
-                  Total Revenue
-                </h3>
-                <p className="text-gray-500 text-sm">Last 7 days</p>
-              </div>
-              {/* <MoreHorizontal className="text-gray-400 w-5 h-5" /> */}
-            </div>
-            <div className="">
-              <div className="flex flex-col gap-4 ">
-                <div className="flex items-center gap-1">
-                  <span className="text-4xl font-medium text-gray-900">
-                    Rs.350K
-                  </span>
-                  <span className="text-sm text-gray-600">Sales</span>
-                  <span className="text-green-500 text-sm font-medium">
-                    ↗ 10.4%
-                  </span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Previous 7days <span className="text-blue-500">($235)</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end items-center">
-              <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
-                Details
-              </button>
-            </div>
+        {
+          isLoading && PayFastPaymentLoading ?
+          <Loader/>
+          
+          : error && PayFastPaymentError ?(
+            <div className="flex justify-center text-red-400 items-center h-20">
+            Error Fetching Data
           </div>
-
-          {/* Total Orders Card */}
-          <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start ">
-              <div>
-                <h3 className="text-gray-900 text-lg font-semibold">
-                  Total Orders
-                </h3>
-                <p className="text-gray-500 text-sm">Last 7 days</p>
-              </div>
-              {/* <MoreHorizontal className="text-gray-400 w-5 h-5" /> */}
-            </div>
-            <div className="">
-              <div className="flex flex-col gap-4 ">
-                <div className="flex items-center gap-1">
-                  <span className="text-4xl font-medium text-gray-900">
-                   Rs.10.7K
-                  </span>
-                  <span className="text-sm text-gray-600">order</span>
-                  <span className="text-green-500 text-sm font-medium">
-                    ↗ 14.4%
-                  </span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Previous 7days <span className="text-blue-500">(7.6k)</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end items-center">
-              <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
-                Details
-              </button>
-            </div>
-          </div>
-
-          {/* PayFast Payments Card */}
-          <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start ">
-              <div>
-                <h3 className="text-gray-900 text-lg font-semibold">
-                  PayFast Payments
-                </h3>
-                <p className="text-gray-500 text-sm">Last 7 days</p>
-              </div>
-              {/* <MoreHorizontal className="text-gray-400 w-5 h-5" /> */}
-            </div>
-            <div className="flex flex-col items-start gap-1">
-              {/* <div> */}
-                <div className="text-sm text-gray-600 ">Received</div>
-                <div className="text-4xl font-semibold text-gray-900">Rs.5091</div>
-              {/* </div> */}
-              {/* <div>
-                <div className="text-sm text-gray-600 mb-2">Pending</div>
-                <div className="text-2xl font-medium text-red-500">$9401</div>
-              </div> */}
-            </div>
-            <div className="flex justify-end">
-              <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
-                Details
-              </button>
+          )
+          : 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5">
+          
+  {[
+   {
+    title: "Total Orders",
+    value: FormatNumber(ResultsApi?.data?.total_orders ?? 0),
+  },
+  {
+    title: "Total Revenue",
+    value: `Rs. ${FormatNumber (ResultsApi?.data?.total_revenue ?? 0)}`,
+  },
+  ].map((card, index) => (
+    <div
+      key={index}
+      className="bg-white rounded-lg p-6 shadow-sm flex flex-col justify-between gap-2"
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-gray-900 text-lg font-semibold">{card.title}</h3>
+        </div>
+      </div>
+      <div className="">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-1">
+            <div className="flex flex-col gap-1">
+              <span className="text-4xl font-medium text-gray-900">
+                {card.value}
+              </span>
             </div>
           </div>
         </div>
+      </div>
+      <div className="flex justify-end items-center">
+        <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
+          Details
+        </button>
+      </div>
+    </div>
+  ))}
+ 
+ <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col gap-4">
+  <div className="flex justify-between items-start">
+    <div>
+      <h3 className="text-gray-900 text-lg font-semibold">PayFastPayment</h3>
+      {/* <p className="text-gray-500 text-sm">Status Summary</p> */}
+    </div>
+  </div>
+
+  <div className="flex justify-between gap-6">
+    {/* Completed Block */}
+    <div className="flex flex-col gap-1 flex-1 border-r pr-4">
+      <div className="text-sm text-green-900">Completed</div>
+      <span className="text-2xl font-medium text-green-600">Rs.{FormatNumber(completed.total_amount.toFixed(2))}</span>
+      {/* <span className="text-sm text-gray-600">Rs.</span> */}
+      {/* <span className="text-green-700 text-sm font-medium">{completed.count} orders</span> */}
+    </div>
+
+    {/* Pending Block */}
+    <div className="flex flex-col gap-1 flex-1 pl-4">
+      <div className="text-sm text-yellow-600">Pending</div>
+      <span className="text-2xl font-medium text-yellow-500">Rs.{FormatNumber(pending.total_amount.toFixed(2))}</span>
+      {/* <span className="text-sm text-gray-600">PKR</span> */}
+      {/* <span className="text-yellow-700 text-sm font-medium">{pending.count} orders</span> */}
+    </div>
+  </div>
+
+  <div className="flex justify-end items-center">
+    <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
+      Details
+    </button>
+  </div>
+</div>
+
+</div>
+}
 
         {/* Middle Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Report Chart */}
           <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
             <div className="flex justify-between w-full items-center mb-6">
-              <h3 className="text-gray-900 text-xl font-semibold">
-                Report for this week
+              <h3 className="text-gray-900 text-xl font-semibold ">
+                Report for {parentActiveTab === "week" ? "this week" : "this month"}
               </h3>
               <div className="flex  bg-[#3651BF1A]  p-1 rounded-md">
                 {dateFilterButtons.map((button, index) => (
                   <button
                     key={index}
                     onClick={() => onTabChange && onTabChange(button.value)}
-                    className={`px-2 py-1 text-sm lato font-medium rounded-md  transition-all
+                    className={`cursor-pointer px-2 py-1 text-sm lato font-medium rounded-md  transition-all
           ${
             parentActiveTab === button.value
               ? "bg-white text-black"
@@ -251,29 +305,35 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              <div className="border-b-2 border-blue-600 pb-2">
-                <div className="text-2xl font-bold text-gray-900">52k</div>
-                <div className="text-xs text-gray-500">IT Vouchers Sold</div>
+            {/* Stats Row - Now showing API data */}
+            {graphDataLoading ? (
+              <div className="flex justify-center items-center h-20">
+                <Loader />
               </div>
+            ) : graphDataError ?(
               <div>
-                <div className="text-2xl font-bold text-gray-900">3.5k</div>
-                <div className="text-xs text-gray-500">Deals Sold</div>
+                <div className="flex justify-center text-red-400 items-center h-20">
+                Error Fetching Data
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">2.5k</div>
-                <div className="text-xs text-gray-500">PTE Vouchers Sold</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0.5k</div>
-                <div className="text-xs text-gray-500">SPMT Sold</div>
+            )
+            
+            : (
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="border-b-2 border-blue-600 pb-2">
+                  <div className="text-2xl font-bold text-gray-900">{FormatNumber(vouchersTotal)}</div>
+                  <div className="text-xs text-gray-500">IT Vouchers</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{FormatNumber(dealsTotal)}</div>
+                  <div className="text-xs text-gray-500">Deals</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{FormatNumber(alphaPteTotal)}</div>
+                  <div className="text-xs text-gray-500">Alpha PTE </div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">0.3k</div>
-                <div className="text-xs text-gray-500">ApeUni & AllAPTE</div>
-              </div>
-            </div>
+            )}
 
             {/* Chart */}
             <div className="h-80 relative">
@@ -294,8 +354,13 @@ const Dashboard = () => {
                     tick={{ fontSize: 12, fill: "#9CA3AF" }}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#3651BF', color: 'white', borderRadius: '4px', padding: '5px' }}
-                    itemStyle={{ color: 'white' }}
+                    contentStyle={{
+                      backgroundColor: "#3651BF",
+                      color: "white",
+                      borderRadius: "4px",
+                      padding: "5px",
+                    }}
+                    itemStyle={{ color: "white" }}
                     formatter={(value) => `${value}k`}
                     labelFormatter={(label) => label}
                   />
@@ -327,88 +392,82 @@ const Dashboard = () => {
           <div className="bg-white rounded-xl shadow-md p-4 w-80">
             <div className="flex justify-between">
               <div>
-              <h2 className="text-lg font-semibold">Target</h2>
-      <p className="text-sm text-gray-500 mb-4">Revenue Target</p>
+                <h2 className="text-lg font-semibold">Target</h2>
+                <p className="text-sm text-gray-500 mb-4">Revenue Target</p>
               </div>
-              <MoreHorizontal className="text-gray-400 w-5 h-5" 
-              onClick={handleOpenModal}
+              <MoreHorizontal
+                className="text-gray-400 w-5 h-5"
+                onClick={handleOpenModal}
               />
             </div>
-      
 
-      <div className="w-68  mx-auto mb-2">
-        {/* <CircularProgressbarWithChildren
-          value={monthlyTarget}
-          maxValue={100}
-          circleRatio={0.5}
-          styles={buildStyles({
-            rotation: 0.75, // starts from bottom-center
-            strokeLinecap: "round",
-            pathColor: "#3b82f6",
-            trailColor: "#e5e7eb",
-            textColor: "#000"
-          })}
-        >
-          <div className="text-xl font-semibold">{monthlyTarget}%</div>
-        </CircularProgressbarWithChildren> */}
-      
+            <div className="w-68  mx-auto">
+              
+              <div className="relative">
+                {/* Injecting the gradient into the DOM */}
+                <svg className="absolute w-0 h-0">
+                  <defs>
+                    <linearGradient
+                      id="bg-gradient-custom"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="#2BB2FE" />
+                      <stop offset="100%" stopColor="#22CAAD" />
+                    </linearGradient>
+                  </defs>
+                </svg>
 
-      <div className="relative">
-      {/* Injecting the gradient into the DOM */}
-      <svg className="absolute w-0 h-0">
-        <defs>
-          <linearGradient id="bg-gradient-custom" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2BB2FE" />
-            <stop offset="100%" stopColor="#22CAAD" />
-          </linearGradient>
-        </defs>
-      </svg>
+                <CircularProgressbarWithChildren
+                  value={monthlyTarget}
+                  maxValue={100}
+                  circleRatio={0.5}
+                  styles={buildStyles({
+                    rotation: 0.75,
+                    strokeLinecap: "round",
+                    pathColor: "url(#bg-gradient-custom)", // Use '#' here!
+                    trailColor: "#e5e7eb",
+                    textColor: "#000",
+                  })}
+                >
+                  <div className=" text-sm font-medium mt-14 flex flex-col justify-center items-center">
+                    {monthlyTarget}%
+                    <div>
+                      <span className="text-green-500 font-semibold">
+                        10% ▲
+                      </span>{" "}
+                      +$150 today
+                    </div>
+                  </div>
+                </CircularProgressbarWithChildren>
+              </div>
+              
+            </div>
 
-      <CircularProgressbarWithChildren
-        value={monthlyTarget}
-        maxValue={100}
-        circleRatio={0.5}
-        styles={buildStyles({
-          rotation: 0.75,
-          strokeLinecap: "round",
-          pathColor: "url(#bg-gradient-custom)", // Use '#' here!
-          trailColor: "#e5e7eb",
-          textColor: "#000",
-        })}
-      >
-        <div className="absolute top-10 text-sm font-medium mt-4 flex flex-col justify-center items-center">
-          {monthlyTarget}%
-         <div> 
-          <span className="text-green-500 font-semibold">10% ▲</span> +$150 today
-         </div>
+            {/* <div className="text-center text-sm mb-"></div> */}
+
+            <p className="text-center text-gray-600 text-sm mb-1">
+              You earned <span className="font-semibold">$150</span>{" "}
+              today, it's higher than yesterday
+            </p>
+
+            <div className="flex justify-between text-sm text-gray-700">
+              <div className="text-center">
+                <p className="font-semibold">$100k</p>
+                <p className="text-gray-500">Target</p>
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-red-500">$75k</p>
+                <p className="text-gray-500">Revenue</p>
+              </div>
+              <div className="text-center">
+                <p className="font-semibold">$1.5k</p>
+                <p className="text-gray-500">This Week</p>
+              </div>
+            </div>
           </div>
-      </CircularProgressbarWithChildren>
-    </div>
-      </div>
-
-      <div className="text-center text-sm mb-4">
-        
-      </div>
-
-      <p className="text-center text-gray-600 text-sm mb-4">
-        You succeed earn <span className="font-semibold">$150</span> today, it's higher than yesterday
-      </p>
-
-      <div className="flex justify-between text-sm text-gray-700">
-        <div className="text-center">
-          <p className="font-semibold">$100k</p>
-          <p className="text-gray-500">Target</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold text-red-500">$75k</p>
-          <p className="text-gray-500">Revenue</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold">$1.5k</p>
-          <p className="text-gray-500">This Week</p>
-        </div>
-      </div>
-    </div>
         </div>
 
         {/* Bottom Row */}
@@ -525,7 +584,10 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold mb-4">Set Monthly Target</h3>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="monthlyTarget" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="monthlyTarget"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Monthly Target
                 </label>
                 <input
@@ -552,7 +614,7 @@ const Dashboard = () => {
                 >
                   Save
                 </button>
-              </div>
+                </div>
             </form>
           </div>
         </div>

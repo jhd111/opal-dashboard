@@ -1,22 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Table from "../../Components/ReusableTable/Table";
 import { edit, deleteimg } from '../../assets/index'; // Adjust path as needed
 import { MdKeyboardArrowRight } from "react-icons/md";
 
+import { fetchResults } from "../../Services/GetResults";
+import OrderTable from '../../Components/ReusableTable/OrderTable';
+import { SearchResults } from "../../Services/Search";
+import useDebouncing from "../../Components/Debouncing/Debouncing"
+import { SearchResultsByOrderId } from '../../Services/OrderSearch';
+
+import { RxCross2 } from "react-icons/rx";
+import { GrStatusGood } from "react-icons/gr";
+import AlphaPte from './AlphaPte';
+import DealsListing from './DealListing';
+import Loader from "../../Components/Loader/Loader"
+
+import { AddResultMutation} from "../../Services/AddResultService"
+import { toast } from 'react-hot-toast';
+
+import { useQueryClient } from "@tanstack/react-query";
+
+
+
+
 const OrderList = () => {
+  
+  
+  const {
+    data: ResultsApi,
+    isLoading,
+    error,
+  } = fetchResults("it-voucher-order-listing", "/api/admin/it-voucher-order-listing/");
+ 
+  const {
+    data: voucherOrderStatistics,
+    isLoading:LoadingvoucherOrderStatistics,
+    error:ErrorvoucherOrderStatistics,
+  } = fetchResults("voucher-order-statistics", "/api/admin/voucher-order-statistics/");
+  const {
+    data: dealOrderStatistics,
+    isLoading:LoadingdealOrderStatistics,
+    error:ErrordealOrderStatistics,
+  } = fetchResults("deal-order-statistics", "/api/admin/deal-order-statistics/");
+
+  const {
+    data: alphapteOrderStatistics,
+    isLoading:LoadingalphapteOrderStatistics,
+    error:ErroralphapteOrderStatistics,
+  } = fetchResults("deal-order-statistics", "/api/admin/aplha-pte-order-statistics/");
+
+  
+ 
+
+  const mutation = AddResultMutation(["it-voucher-order-listing"]);
+
+  const queryClient = useQueryClient(); // initialize query client
+
+  // SearchApi 
+  const [searchTable1, setSearchTable1] = useState("")
+  const debouncedSearchTable1 = useDebouncing(searchTable1, 2000)
+
+  const { data: ResultSearch, isLoading: IsLoadingResultSearch } = 
+  SearchResultsByOrderId("it-voucher-order-listing", "/api/admin/get-order-by-id/", debouncedSearchTable1);
+
+  const [transformedData1, setTransformedData1] = useState({
+    "Table Data1": [],
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
-  const [parentActiveTab, setParentActiveTab] = useState("all");
+  const [parentActiveTab, setParentActiveTab] = useState("voucher");
   const [activeCategoryTab, setActiveCategoryTab] = useState(0); // New state for category tabs
 
-  const [formState, setFormState] = useState({
-    productName: "",
-    productDescription: "",
-    productPrice: "",
-    discountedPrice: "",
-    validityAfterPurchase: "",
-    productImage: null,
-  });
+  const [formState, setFormState] = useState();
+
+  const [isEditResultModalOpen, setEditResultIsModalOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
 
   // Add this handler
   const handleAddNewProduct = (row) => {
@@ -24,138 +83,202 @@ const OrderList = () => {
     // Handle add new product logic
   };
 
+  // Transform function for fetch API response (array of payments)
+  const transformFetchApiResponse = (apiResponse, currentPage, pageSize) => {
+    const data = apiResponse?.payments || [];
+  
+    return data
+      .filter(item => item.order_id && item.product_name) // Filter out entries with missing order_id or product_name
+      .map((item, index) => {
+        const srNo = (currentPage - 1) * pageSize + index + 1;
+  
+        // Determine status based on payment type
+        const status = item.type === 'bank_transfer' || item.type === 'bank transfer'
+          ? item.payment_approved ? 'APPROVED' : 'PENDING'
+          : item.status || 'UNKNOWN';
+  
+        return {
+          id: `${item?.id}`,
+          orderId: item.order_id || 'N/A',
+          voucherName: item.product_name || 'N/A',
+          quantity: item.product_quantity || 1,
+          amount: item.product_price || '0.00',
+          date: item.created_at 
+            ? new Date(item.created_at).toLocaleDateString() 
+            : 'N/A',
+          customerName: item.full_name || 'Unknown',
+          email: ` ${item.email || 'N/A'}`,
+          phone: item.phone_number || 'N/A',
+          paymentType: item.type || 'N/A',
+          cardHolder: item.card_holder_name || item.full_name,
+          cardNumber: item.card_number || (item.type.includes('bank') ? 'N/A' : 'Unknown'),
+          status: status,
+          screenshot: item.payment_image || null,
+          ...item, // Include rest of the fields in case needed elsewhere
+        };
+      });
+  };
+
+  // Transform function for search API response (single object)
+  const transformSearchApiResponse = (apiResponse, currentPage, pageSize) => {
+    const item = apiResponse?.data;
+    
+    if (!item || !item.order_id || !item.product_name) {
+      return []; // Return empty array if no valid data
+    }
+
+    // Determine status based on payment type
+    const status = item.type === 'bank_transfer' || item.type === 'bank transfer'
+      ? item.payment_approved ? 'APPROVED' : 'PENDING'
+      : item.status || 'UNKNOWN';
+
+    return [{
+      id: item?.id, // Since it's a single result
+      orderId: item.order_id || 'N/A',
+      voucherName: item.product_name || 'N/A',
+      quantity: item.product_quantity || 1,
+      amount: item.product_price || '0.00',
+      date: item.created_at 
+        ? new Date(item.created_at).toLocaleDateString() 
+        : 'N/A',
+      customerName: item.full_name || 'Unknown',
+      // contact: `${item.email || 'N/A'} / ${item.phone_number || 'N/A'}`,
+      email: ` ${item.email || 'N/A'}`,
+      phone: item.phone_number || 'N/A',
+      paymentType: item.type || 'N/A',
+      cardHolder: item.card_holder_name || item.full_name,
+      cardNumber: item.card_number || (item.type.includes('bank') ? 'N/A' : 'Unknown'),
+      status: status,
+      screenshot: item.payment_image || null,
+      ...item, // Include rest of the fields in case needed elsewhere
+    }];
+  };
+
+  // columns 
   const columns = [
+    {label:"ID",accessor:"id"},
     { label: "Order ID", accessor: "orderId" },
     { label: "Voucher Name", accessor: "voucherName" },
     { label: "Quantity", accessor: "quantity" },
     { label: "Amount", accessor: "amount" },
     { label: "Date", accessor: "date" },
     { label: "Customer Name", accessor: "customerName" },
-    { label: "Email/Phone Number", accessor: "email" },
+    { label: "Email", accessor: "email" },
+    { label: "Phone Number", accessor: "phone" },
+
     { label: "Payment Type", accessor: "paymentType" },
-    { label: "Payment Info", accessor: "paymentInfo" },
-    { label: "Screenshot", accessor: "screenshot" },
+    { label: "Card Holder", accessor: "cardHolder" },
+    { label: "ScreenShot", accessor: "screenshot" },
+    { label: "Card Number", accessor: "cardNumber" },
     { label: "Status", accessor: "status" },
   ];
+  
+  // Effect to handle search results
+  useEffect(() => {
+    if (debouncedSearchTable1 && ResultSearch?.data) {
+      const transformed = transformSearchApiResponse(
+        ResultSearch,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }, [ResultSearch, currentPage, debouncedSearchTable1]);
+  
+  // Effect to handle fetch results (when no search or search is cleared)
+  useEffect(() => {
+    if (!debouncedSearchTable1 && ResultsApi?.data) {
+      const transformed = transformFetchApiResponse(
+        ResultsApi.data,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }, [ResultsApi, currentPage, debouncedSearchTable1]);
 
-  const data1 = [
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      email: "example@gmail.com",
-      phone: "+92 330 2456719",
-      paymentType: "Bank Transfer",
-      paymentInfo: "Nil",
-      screenshot: true,
-      status: "Pending",
-    },
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      email: "example@gmail.com",
-      phone: "+92 330 2456719",
-      paymentType: "Credit/Debit Card",
-      paymentInfo: "**** **** **** 6788",
-      screenshot: true,
-      status: "Completed",
-    },
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      email: "example@gmail.com",
-      phone: "+92 330 2456719",
-      paymentType: "Credit/Debit Card",
-      paymentInfo: "**** **** **** 5788",
-      screenshot: true,
-      status: "Pending",
-    },
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      email: "example@gmail.com",
-      phone: "+92 330 2456719",
-      paymentType: "Bank Transfer",
-      paymentInfo: "Nil",
-      screenshot: true,
-      status: "Pending",
-    },
-    {
-      orderId: "#53200002",
-      voucherName: "CompTIA Voucher",
-      quantity: "02",
-      amount: "$60.76",
-      date: "Jan 10, 2020 12:00PM",
-      customerName: "Jacob Jones",
-      email: "example@gmail.com",
-      phone: "+92 330 2456719",
-      paymentType: "Credit/Debit Card",
-      paymentInfo: "**** **** **** 6788",
-      screenshot: true,
-      status: "Pending",
-    },
-  ];
-  const toggle = { toggle: true };
-
-  const toggleIcon = {
-    status: (
-      <label className="inline-flex items-center cursor-pointer">
-        <input type="checkbox" className="sr-only peer" />
-        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
-      </label>
-    ),
-  };
-
-  const allOrdersData = data1;
-  const completedData = data1.filter(order => order.status === "completed");
-  const pendingData = data1.filter(order => order.status === "pending");
-
+  // Effect to reset to original data when search is cleared
+  useEffect(() => {
+    if (debouncedSearchTable1 === "") {
+      if (ResultsApi?.data) {
+        const transformed = transformFetchApiResponse(
+          ResultsApi.data,
+          currentPage,
+          10
+        );
+        setTransformedData1({ "Table Data1": transformed });
+      }
+    }
+  }, [debouncedSearchTable1, ResultsApi, currentPage]);
+  
   const handleTabChange = (tabValue) => {
     setActiveTab(tabValue);
   };
 
-  const getCurrentData = () => {
-    if (activeTab === "all") return allOrdersData;
-    if (activeTab === "completed") return completedData;
-    if (activeTab === "pending") return pendingData;
-    return allOrdersData;
-  };
+  
 
-  const optionalButtons = [
-    { label: `All order (${allOrdersData.length})`, value: "all" },
-    { label: "Completed", value: "completed" },
-    { label: `Pending (${pendingData.length})`, value: "pending" },
-  ];
+
+  // Aceept reject
+  const handleApprove = (payment_approved) => {
+    console.log("formState",formState)
+    if (!formState?.id) {
+      return;
+    }
+  
+
+    const id = formState.id;
+
+    const formData = new FormData();
+    formData.append("payment_id",id)
+    formData.append("payment_approved", payment_approved ? "True" : "False");
+  
+    mutation.mutate(
+      {
+        payload: formData,
+        path: "bank-payment-approval/",
+        // queryKey: "it-voucher-order-listing",
+      },
+      {
+        onSuccess: () => {
+          toast.success(payment_approved ? "Payment Approved ✅" : "Payment Cancelled ❌");
+          setShowModal(false);
+          setFormState(null);
+
+          // ✅ Refetch the voucher list to show updated status
+      queryClient.invalidateQueries(["it-voucher-order-listing"]);
+        },
+        onError: (error) => {
+          const errorMessage =
+    error?.response?.data?.error || "Failed to update approval";
+          toast.error(errorMessage);
+          setShowModal(false);
+        },
+      }
+    );
+  };
+   
 
   const actions = { viewDetails: false, edit: true, delete: true };
 
   const icons = {
     viewDetails: <MdKeyboardArrowRight />,
-    edit: <img src={edit} alt="edit" className="w-4 h-4" />,
-    delete: <img src={deleteimg} alt="delete" className="w-4 h-4" />,
+    edit: <GrStatusGood className="w-4 h-4" />,
+    delete: <RxCross2  className="w-4 h-4" />,
   };
 
-  const dateFilterButtons = [
-    { label: "All Date", value: "all" },
-    { label: "12 Months", value: "12months" },
-    { label: "30 Days", value: "30days" },
-    { label: "7 Days", value: "7days" },
-    { label: "24 Hour", value: "24hours" },
+  // const dateFilterButtons = [
+  //   { label: "All Date", value: "all" },
+  //   { label: "12 Months", value: "12months" },
+  //   { label: "30 Days", value: "30days" },
+  //   { label: "7 Days", value: "7days" },
+  //   { label: "24 Hour", value: "24hours" },
+  // ];
+
+   const dateFilterButtons = [
+    { label: "Vouchers", value: "voucher" },
+    { label: "Deals", value: "deal" },
+    { label: "Alpha Pte", value: "alphapte" },
+    
   ];
 
   const onTabChange = (value) => {
@@ -163,7 +286,95 @@ const OrderList = () => {
     // any other logic on click
   };
 
-  const categories = ['IT Vouchers (240)', 'SPMT', 'PTE Vouchers', 'APEUni', 'Alfa PTE', 'Our Deals'];
+  const categories = ['IT Vouchers', 'Alfa PTE', 'Our Deals'];
+
+  // / Function to get current data based on active tab
+const getCurrentData = () => {
+  switch (parentActiveTab) {
+    case "voucher":
+      return {
+        data: voucherOrderStatistics,
+        isLoading: LoadingvoucherOrderStatistics,
+        error: ErrorvoucherOrderStatistics,
+      };
+    case "deal":
+      return {
+        data: dealOrderStatistics,
+        isLoading: LoadingdealOrderStatistics,
+        error: ErrordealOrderStatistics,
+      };
+    case "alphapte":
+      return {
+        data: alphapteOrderStatistics,
+        isLoading: LoadingalphapteOrderStatistics,
+        error: ErroralphapteOrderStatistics,
+      };
+    default:
+      return {
+        data: null,
+        isLoading: false,
+        error: null,
+      };
+  }
+};
+
+const { data: currentData, isLoading: currentLoading, error: currentError } = getCurrentData();
+
+
+
+  // Function to render content based on active category tab
+  const renderCategoryContent = () => {
+    switch (activeCategoryTab) {
+      case 0: // IT Vouchers
+        return (
+          <OrderTable
+            columns={columns}
+            data={transformedData1["Table Data1"]}
+            actions={actions}
+            icons={icons}
+            borderRadius={true}
+            download={false}
+            search={true}
+            filter={true}
+            pagination={true}
+            modal={false}
+            Loading={isLoading || IsLoadingResultSearch}
+            setSearchTable={setSearchTable1}
+            setOpenModal={setShowModal}
+            setDeleteModal={setShowModal}
+            onEdit={setFormState}
+            setDeleteUser={setFormState}
+          />
+        );
+      case 1: // Alfa PTE
+        return <AlphaPte />;
+      case 2: // Our Deals
+        return  <DealsListing/>
+          
+      default:
+        return (
+          <OrderTable
+            columns={columns}
+            data={transformedData1["Table Data1"]}
+            actions={actions}
+            icons={icons}
+            borderRadius={true}
+            download={false}
+            search={true}
+            filter={true}
+            pagination={true}
+            modal={false}
+            Loading={isLoading || IsLoadingResultSearch}
+            setSearchTable={setSearchTable1}
+
+            setOpenModal={setShowModal}
+            setDeleteModal={setShowModal}
+            onEdit={setFormState}
+            setDeleteUser={setFormState}
+          />
+        );
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2  w-full">
@@ -171,46 +382,54 @@ const OrderList = () => {
         <div className="lato text-[#023337] text-lg font-bold">Order List</div>
 
         <div className="inline-flex bg-white border border-[#F0F1F3] p-2 rounded-md">
-          {dateFilterButtons.map((button, index) => (
-            <button
-              key={index}
-              onClick={() => onTabChange && onTabChange(button.value)}
-              className={`px-3 py-1 text-sm lato font-medium rounded-md transition-all
-          ${
-            parentActiveTab === button.value
-              ? "bg-[#3651BF1A] text-black"
-              : "bg-transparent text-[#4B5563]"
-          }`}
-            >
-              {button.label}
-            </button>
-          ))}
-        </div>
+      {dateFilterButtons.map((button, index) => (
+        <button
+          key={index}
+          onClick={() => onTabChange && onTabChange(button.value)}
+          className={`px-3 py-1 text-sm lato font-medium rounded-md transition-all
+            ${
+              parentActiveTab === button.value
+                ? "bg-[#3651BF1A] text-black"
+                : "bg-transparent text-[#4B5563]"
+            }`}
+        >
+          {button.label}
+        </button>
+      ))}
+    </div>
       </div>
 
       {/* ------------------Stats Cards------------------ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-        {/* Total Orders */}
-        <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-lg font-bold mb-2 lato text-[#23272E]">
-                Total Orders
-              </h2>
-              <p className="text-3xl font-bold lato text-[#23272E]">1,240</p>
-              <p className="text-sm text-gray-500 mt-1">Till Date</p>
+ {/* Stats Cards - Conditional Rendering */}
+ {currentLoading ? (
+      <Loader />
+    ) : currentError ? (
+      <div>Error Fetching Data</div>
+    ) : (
+      currentData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+          {Object.entries(currentData).map(([key, value], index) => (
+            <div key={index} className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-lg font-bold mb-2 lato text-[#23272E]">
+                    {key
+                      .replace(/_/g, ' ') // Replace underscores with spaces
+                      .replace(/\b\w/g, (l) => l.toUpperCase()) // Capitalize words
+                    }
+                  </h2>
+                  <p className="text-3xl font-bold lato text-green-800">{value}</p>
+                  <p className="text-sm text-gray-500 mt-1">Till Date</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center">
-              {/* <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button> */}
-            </div>
-          </div>
+          ))}
         </div>
+      )
+    )}
 
-        {/* New Orders */}
+
+        {/* New Orders
         <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
           <div className="flex justify-between items-start">
             <div>
@@ -223,17 +442,10 @@ const OrderList = () => {
               </div>
               <p className="text-sm text-gray-500">Last 7 days</p>
             </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
           </div>
         </div>
 
-        {/* Completed Orders */}
+        Completed Orders
         <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
           <div className="flex justify-between items-start">
             <div>
@@ -246,17 +458,10 @@ const OrderList = () => {
               </div>
               <p className="text-sm text-gray-500">Last 7 days</p>
             </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
           </div>
         </div>
 
-        {/* Pending Orders */}
+        Pending Orders
         <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
           <div className="flex justify-between items-start">
             <div>
@@ -269,19 +474,12 @@ const OrderList = () => {
               </div>
               <p className="text-sm text-gray-500">Last 7 days</p>
             </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
           </div>
         </div>
-      </div>
+      </div> */}
 
-      {/* ------------------Category Filter Buttons (Updated to match image)------------------ */}
-      <div className="bg-gray-100 p-1 rounded-lg mb-3 w-full lg:w-[65%]">
+      {/* ------------------Category Filter Buttons------------------ */}
+      <div className="bg-gray-100 p-1 rounded-lg mb-3 w-full lg:w-[33%]">
         <div className="flex gap-1 overflow-x-auto">
           {categories.map((category, index) => (
             <button
@@ -299,27 +497,32 @@ const OrderList = () => {
         </div>
       </div>
 
-      {/* ------------------Table------------------ */}
-      <Table
-        columns={columns}
-        data={getCurrentData()}
-        actions={actions}
-        icons={icons}
-        borderRadius={true}
-        download={false}
-        search={true}
-        filter={true}
-        pagination={true}
-        optionalButtons={optionalButtons}
-        onTabChange={handleTabChange}
-        activeTab={activeTab}
-        modal={false}
-        modalTitle="Add New Product"
-        // status={toggle}
-        toggleIcon={toggleIcon}
-        isOpen="true"
-        onAddNewProduct={handleAddNewProduct}
-      />
+      {/* ------------------Dynamic Content Based on Category Tab------------------ */}
+      {renderCategoryContent()}
+      {/* modal  */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center backdrop-blur-md bg-gray-800/30 justify-center z-60">
+          <div className="bg-white p-5 rounded-lg w-[95%] lg:w-[40%] 2xl:w-[40%] shadow-2xl max-h-[95vh] overflow-y-auto">
+            <h2 className="text-lg text-center font-semibold text-gray-800 mb-4">
+              Are you sure you want to Proceed?
+            </h2>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => handleApprove(false)}
+                className="cursor-pointer px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                 onClick={() => handleApprove(true)}
+                className="cursor-pointer px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

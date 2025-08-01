@@ -4,6 +4,10 @@ import * as Yup from "yup";
 import InputFields from "../../InputFields/InputFields";
 import { uploadButton } from "../../../assets/index";
 
+import { AddResultMutation } from "../../../Services/AddResultService";
+import toast, { Toaster } from "react-hot-toast";
+import { fetchResults } from  "../../../Services/GetResults"
+
 const AddVoucher = ({
   isOpen,
   onClose,
@@ -12,6 +16,22 @@ const AddVoucher = ({
   formState,
   setFormState,
 }) => {
+  const mutation = AddResultMutation();
+  // fetch CATEGORY
+  const {
+    data: categoriesApi,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = fetchResults("add-voucher", "/api/admin/categories-list/");
+
+  const vendorOptions =
+  categoriesApi?.data?.map((item) => ({
+    label: item.name,
+    value: item.id, // or item.id if you want to use ID
+  })) || [];
+
+  console.log("vendorOptions",vendorOptions)
+
   // Enhanced scroll prevention effect
   useEffect(() => {
     if (isOpen) {
@@ -52,11 +72,11 @@ const AddVoucher = ({
   const formik = useFormik({
     initialValues: {
       voucherName: "", // Voucher Name
-      vendor: "",       // Vendor
-      description: "",  // Description
-      price: "",        // Price
-      status: "",       // Status
-      photo: null,      // File upload field
+      vendor: "", // Vendor
+      description: "", // Description
+      price: 0, // Price
+      status: "", // Status
+      photo: null, // File upload field
     },
     validationSchema: Yup.object({
       voucherName: Yup.string().required("Voucher Name is required"),
@@ -80,8 +100,33 @@ const AddVoucher = ({
         ),
     }),
     onSubmit: (values) => {
-      console.log("Form values:", { ...values });
-      handleSubmit(values);
+      const formData = new FormData();
+      formData.append("name", values.voucherName);
+      formData.append("category", values.vendor);
+      formData.append("price", values.price);
+      formData.append("detail", values.description);
+
+      if (values.photo) {
+        formData.append("image", values.photo);
+      }
+
+      mutation.mutate(
+        {
+          payload: formData,
+          path: "admin/add-it-voucher/",
+          queryKey: "add-voucher", // 👈 Add this to enable refetch
+        },
+        {
+          onSuccess: (data) => {
+            toast.success("Vendor created successfully!");
+            formik.resetForm(); // Reset form after successful submission
+            onClose(); // Close modal on success
+          },
+          onError: (error) => {
+            toast.error("Failed to create Vendor. Please try again.");
+          },
+        }
+      );
     },
   });
 
@@ -116,22 +161,17 @@ const AddVoucher = ({
               touched={formik.touched.voucherName}
               {...formik.getFieldProps("voucherName")}
             />
-
             {/* Vendor Dropdown */}
             <InputFields
               label="Vendor"
               placeholder="Select Vendor"
               isSelect={true}
-              options={[
-                { value: "CompTIA", label: "CompTIA" },
-                { value: "AWS", label: "AWS" },
-                // Add more vendors as needed
-              ]}
+              options={vendorOptions}
               error={formik.errors.vendor}
               touched={formik.touched.vendor}
               {...formik.getFieldProps("vendor")}
             />
-
+           
             {/* Description Field */}
             <InputFields
               label="Description"
@@ -141,7 +181,6 @@ const AddVoucher = ({
               touched={formik.touched.description}
               {...formik.getFieldProps("description")}
             />
-
             {/* Price Field */}
             <InputFields
               label="Price"
@@ -151,7 +190,6 @@ const AddVoucher = ({
               touched={formik.touched.price}
               {...formik.getFieldProps("price")}
             />
-
             {/* Status Dropdown */}
             <InputFields
               label="Status"
@@ -165,13 +203,16 @@ const AddVoucher = ({
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
             />
-
             {/* Upload Photo */}
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">Upload Photo</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Upload Photo
+              </label>
               <div
                 className={`w-full border-dotted border-[#4755E5] border-1 rounded-md mt-2 mb-2 p-4 ${
-                  formik.touched.photo && formik.errors.photo ? "border-red-500" : ""
+                  formik.touched.photo && formik.errors.photo
+                    ? "border-red-500"
+                    : ""
                 }`}
               >
                 {!formik.values.photo ? (
@@ -220,10 +261,11 @@ const AddVoucher = ({
                 )}
               </div>
               {formik.errors.photo && formik.touched.photo && (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.photo}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.photo}
+                </p>
               )}
             </div>
-
             {/* Buttons */}
             <div className="flex justify-end mt-4">
               <button

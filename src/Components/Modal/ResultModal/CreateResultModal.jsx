@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { PiGreaterThanLight } from "react-icons/pi";
-import { uploadButton } from "../../../assets/index";
+import { uploadButton } from "../../../assets/index"
 import InputFields from "../../InputFields/InputFields";
+import { AddResultMutation} from "../../../Services/AddResultService"
+import toast, { Toaster } from "react-hot-toast";
 
 const CreateResultModal = ({
   isOpen,
@@ -61,22 +63,22 @@ const CreateResultModal = ({
     };
   }, [isOpen]);
 
-  
+  const mutation = AddResultMutation();
   const formik = useFormik({
     initialValues: {
-      name: formState.name,
-      examType: formState.examType,
-      testTakerId: formState.testTakerId,
-      registrationID: formState.registrationID,
-      scoreObtained: formState.scoreObtained,
-      instructorName: formState.instructorName,
-      listening: formState.listening,
-      reading: formState.reading,
-      speaking: formState.speaking,
-      writing: formState.writing,
-      status: formState.status,
-      studentImage: formState.studentImage,
-      resultImage: formState.resultImage,
+      name: "",
+      examType: "",
+      testTakerId: "",
+      registrationID: "",
+      scoreObtained: "",
+      instructorName: "",
+      listening: "",
+      reading: "",
+      speaking: "",
+      writing: "",
+      status: "",
+      studentImage: null,
+      resultImage: null,
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Student Name is required"),
@@ -100,17 +102,17 @@ const CreateResultModal = ({
         .typeError("Writing score must be a number")
         .required("Writing score is required"),
       status: Yup.string().required("Status is required"),
-      studentImage: Yup.mixed()
-        .test(
-          "fileFormat",
-          "Only JPEG and PNG formats are supported.",
-          (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
-        )
-        .test(
-          "fileSize",
-          "File size must not exceed 5 MB.",
-          (value) => !value || (value && value.size / (1024 * 1024) <= 5)
-        ),
+      // studentImage: Yup.mixed()
+      //   .test(
+      //     "fileFormat",
+      //     "Only JPEG and PNG formats are supported.",
+      //     (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
+      //   )
+      //   .test(
+      //     "fileSize",
+      //     "File size must not exceed 5 MB.",
+      //     (value) => !value || (value && value.size / (1024 * 1024) <= 5)
+      //   ),
       resultImage: Yup.mixed()
         .test(
           "fileFormat",
@@ -124,17 +126,45 @@ const CreateResultModal = ({
         ),
     }),
     onSubmit: (values) => {
-      console.log("Form values:", { ...values });
-      handleSubmit(values);
+      const formData = new FormData();
+      formData.append("student_name", values.name);
+      formData.append("test_type", values.examType);
+      formData.append("score_obtained", values.scoreObtained);
+      formData.append("test_taker_id", values.testTakerId);
+      formData.append("registration_id", values.registrationID);
+      formData.append("instructor", values.instructorName);
+      formData.append("listening", values.listening);
+      formData.append("reading", values.reading);
+      formData.append("speaking", values.speaking);
+      formData.append("writing", values.writing);
+      formData.append("overall_score", values.scoreObtained);
+      if (values.resultImage) {
+        formData.append("image", values.resultImage);
+      }
+
+      mutation.mutate(
+        {
+          payload: formData,
+          path: "admin/add-results/",
+          queryKey: "our-results", // 👈 Add this to enable refetch
+        },
+        {
+          onSuccess: (data) => {
+            toast.success("Result submitted successfully!");
+            formik.resetForm(); // Reset form after successful submission
+            onClose(); // Close modal on success
+          },
+          onError: (error) => {
+            toast.error("Failed to submit result. Please try again.");
+          },
+        }
+      );
     },
   });
 
   useEffect(() => {
     if (!isOpen) {
-      // Reset Formik
       formik.resetForm();
-  
-      // Reset formState
       setFormState({
         name: "",
         examType: "",
@@ -147,8 +177,8 @@ const CreateResultModal = ({
         speaking: "",
         writing: "",
         status: "",
-        studentImage: null,
-        resultImage: "",
+        // studentImage: null,
+        resultImage: null,
       });
     }
   }, [isOpen]);
@@ -171,7 +201,7 @@ const CreateResultModal = ({
           <form onSubmit={formik.handleSubmit} className="">
             {/* Two-column layout */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* Student Name */}
+              {/* Exam Name */}
               <InputFields
                 label={nameLabel}
                 placeholder="Enter Student Name"
@@ -179,6 +209,11 @@ const CreateResultModal = ({
                 error={formik.errors.name}
                 touched={formik.touched.name}
                 {...formik.getFieldProps("name")}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched("name", true);
+                  formik.validateField("name");
+                }}
               />
               {/* Exam Type */}
               <InputFields
@@ -188,6 +223,11 @@ const CreateResultModal = ({
                 error={formik.errors.examType}
                 touched={formik.touched.examType}
                 {...formik.getFieldProps("examType")}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched("examType", true);
+                  formik.validateField("examType");
+                }}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -199,6 +239,11 @@ const CreateResultModal = ({
                 error={formik.errors.testTakerId}
                 touched={formik.touched.testTakerId}
                 {...formik.getFieldProps("testTakerId")}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched("testTakerId", true);
+                  formik.validateField("testTakerId");
+                }}
               />
               {/* Registration ID */}
               <InputFields
@@ -208,6 +253,11 @@ const CreateResultModal = ({
                 error={formik.errors.registrationID}
                 touched={formik.touched.registrationID}
                 {...formik.getFieldProps("registrationID")}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched("registrationID", true);
+                  formik.validateField("registrationID");
+                }}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -219,6 +269,12 @@ const CreateResultModal = ({
                 error={formik.errors.scoreObtained}
                 touched={formik.touched.scoreObtained}
                 {...formik.getFieldProps("scoreObtained")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  formik.setFieldValue("scoreObtained", value === "" ? "" : Number(value));
+                  formik.setFieldTouched("scoreObtained", true);
+                  formik.validateField("scoreObtained");
+                }}
               />
               {/* Instructor Name */}
               <InputFields
@@ -228,6 +284,11 @@ const CreateResultModal = ({
                 error={formik.errors.instructorName}
                 touched={formik.touched.instructorName}
                 {...formik.getFieldProps("instructorName")}
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  formik.setFieldTouched("instructorName", true);
+                  formik.validateField("instructorName");
+                }}
               />
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -239,6 +300,12 @@ const CreateResultModal = ({
                 error={formik.errors.listening}
                 touched={formik.touched.listening}
                 {...formik.getFieldProps("listening")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  formik.setFieldValue("listening", value === "" ? "" : Number(value));
+                  formik.setFieldTouched("listening", true);
+                  formik.validateField("listening");
+                }}
               />
               {/* Reading */}
               <InputFields
@@ -248,6 +315,12 @@ const CreateResultModal = ({
                 error={formik.errors.reading}
                 touched={formik.touched.reading}
                 {...formik.getFieldProps("reading")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  formik.setFieldValue("reading", value === "" ? "" : Number(value));
+                  formik.setFieldTouched("reading", true);
+                  formik.validateField("reading");
+                }}
               />
               {/* Speaking */}
               <InputFields
@@ -257,6 +330,12 @@ const CreateResultModal = ({
                 error={formik.errors.speaking}
                 touched={formik.touched.speaking}
                 {...formik.getFieldProps("speaking")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  formik.setFieldValue("speaking", value === "" ? "" : Number(value));
+                  formik.setFieldTouched("speaking", true);
+                  formik.validateField("speaking");
+                }}
               />
               {/* Writing */}
               <InputFields
@@ -266,6 +345,12 @@ const CreateResultModal = ({
                 error={formik.errors.writing}
                 touched={formik.touched.writing}
                 {...formik.getFieldProps("writing")}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  formik.setFieldValue("writing", value === "" ? "" : Number(value));
+                  formik.setFieldTouched("writing", true);
+                  formik.validateField("writing");
+                }}
               />
             </div>
             {/* Status */}
@@ -280,11 +365,16 @@ const CreateResultModal = ({
               error={formik.errors.status}
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
+              onChange={(e) => {
+                formik.handleChange(e);
+                formik.setFieldTouched("status", true);
+                formik.validateField("status");
+              }}
             />
             {/* File Uploads */}
             <div className="grid grid-cols-2 gap-4">
               {/* Student Image Upload */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700">
                   {studentImageLabel}
                 </label>
@@ -315,6 +405,8 @@ const CreateResultModal = ({
                         onChange={(e) => {
                           const file = e.target.files[0];
                           formik.setFieldValue("studentImage", file);
+                          formik.setFieldTouched("studentImage", true);
+                          formik.validateField("studentImage");
                         }}
                       />
                     </label>
@@ -323,12 +415,14 @@ const CreateResultModal = ({
                       <img
                         src={URL.createObjectURL(formik.values.studentImage)}
                         alt="Uploaded"
-                        className="w-24  object-contain rounded-md"
+                        className="w-24 object-contain rounded-md"
                       />
                       <div className="absolute -top-2 right-16">
                         <div
                           onClick={() => {
                             formik.setFieldValue("studentImage", null);
+                            formik.setFieldTouched("studentImage", true);
+                            formik.validateField("studentImage");
                           }}
                           className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
                         >
@@ -338,12 +432,12 @@ const CreateResultModal = ({
                     </div>
                   )}
                 </div>
-                {formik.errors.studentImage && formik.touched.studentImage && (
+                {formik.touched.studentImage && formik.errors.studentImage && (
                   <p className="text-red-500 text-sm mt-1">
-                    {"Student Image is required"}
+                    {formik.errors.studentImage}
                   </p>
                 )}
-              </div>
+              </div> */}
               {/* Result Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -377,7 +471,8 @@ const CreateResultModal = ({
                         onChange={(e) => {
                           const file = e.target.files[0];
                           formik.setFieldValue("resultImage", file);
-                         
+                          formik.setFieldTouched("resultImage", true);
+                          formik.validateField("resultImage");
                         }}
                       />
                     </label>
@@ -392,6 +487,8 @@ const CreateResultModal = ({
                         <div
                           onClick={() => {
                             formik.setFieldValue("resultImage", null);
+                            formik.setFieldTouched("resultImage", true);
+                            formik.validateField("resultImage");
                           }}
                           className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
                         >
@@ -401,10 +498,10 @@ const CreateResultModal = ({
                     </div>
                   )}
                 </div>
-                {formik.errors.resultImage &&
-                  (formik.touched.resultImage || formik.submitCount > 0) && (
+                {(formik.touched.resultImage || formik.submitCount > 0) &&
+                  formik.errors.resultImage && (
                     <p className="text-red-500 text-sm mt-1">
-                      {"Result Image is required"}
+                      {formik.errors.resultImage}
                     </p>
                   )}
               </div>

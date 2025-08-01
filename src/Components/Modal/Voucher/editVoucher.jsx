@@ -4,6 +4,10 @@ import * as Yup from "yup";
 import InputFields from "../../InputFields/InputFields";
 import { uploadButton } from "../../../assets/index";
 
+import { EditResultMutation} from "../../../Services/Editservice"
+import toast, { Toaster } from "react-hot-toast";
+import { fetchResults } from  "../../../Services/GetResults"
+
 const EditVoucher = ({
   isOpen,
   onClose,
@@ -12,6 +16,21 @@ const EditVoucher = ({
   formState,
   setFormState,
 }) => {
+  const mutation = EditResultMutation(["add-voucher"]);
+  
+  // fetch CATEGORY
+  const {
+    data: categoriesApi,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = fetchResults("add-voucher", "/api/admin/categories-list/");
+
+  const vendorOptions =
+    categoriesApi?.data?.map((item) => ({
+      label: item.name,
+      value: item.id,
+    })) || [];
+
   // Enhanced scroll prevention effect
   useEffect(() => {
     if (isOpen) {
@@ -48,15 +67,18 @@ const EditVoucher = ({
     };
   }, [isOpen]);
 
+  console.log("formState", formState);
+
   // Formik Configuration
   const formik = useFormik({
+    enableReinitialize: true, // This is key - allows form to reinitialize when initialValues change
     initialValues: {
-      voucherName: "", // Voucher Name
-      vendor: "",       // Vendor
-      description: "",  // Description
-      price: "",        // Price
-      status: "",       // Status
-      photo: null,      // File upload field
+      voucherName: formState?.name || "", // Add fallback empty string
+      vendor: formState?.category || "",
+      description: formState?.detail || "",
+      price: formState?.price || "",
+      // status: formState?.status || "", // Make sure this field is populated
+      photo: null,
     },
     validationSchema: Yup.object({
       voucherName: Yup.string().required("Voucher Name is required"),
@@ -66,28 +88,96 @@ const EditVoucher = ({
         .typeError("Price must be a number")
         .positive("Price must be positive")
         .required("Price is required"),
-      status: Yup.string().required("Status is required"),
-      photo: Yup.mixed()
-        .test(
-          "fileFormat",
-          "Only JPEG and PNG formats are supported.",
-          (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
-        )
-        .test(
-          "fileSize",
-          "File size must not exceed 5 MB.",
-          (value) => !value || (value && value.size / (1024 * 1024) <= 5)
-        ),
+      // status: Yup.string().required("Status is required"),
+      // photo: Yup.mixed()
+      //   .test(
+      //     "fileFormat",
+      //     "Only JPEG and PNG formats are supported.",
+      //     (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
+      //   )
+      //   .test(
+      //     "fileSize",
+      //     "File size must not exceed 5 MB.",
+      //     (value) => !value || (value && value.size / (1024 * 1024) <= 5)
+      //   ),
     }),
     onSubmit: (values) => {
-      console.log("Form values:", { ...values });
-      handleSubmit(values);
+      console.log("🚀 FORMIK ONSUBMIT CALLED!");
+      console.log("Form submitted with values:", values);
+      console.log("FormState ID:", formState?.id);
+      
+      const formData = new FormData();
+      formData.append("name", values.voucherName);
+      formData.append("category", values.vendor);
+      formData.append("price", values.price);
+      formData.append("detail", values.description);
+
+      if (values.photo) {
+        formData.append("image", values.photo);
+      }
+
+      // For edit mode, you need to add an ID field to identify which record to update
+      if (formState?.id) {
+        formData.append("id", formState.id);
+      }
+
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      console.log("🚀 CALLING MUTATION...");
+      mutation.mutate(
+        {
+          payload: formData,
+          path: "admin/add-it-voucher/",
+        },
+        {
+          onSuccess: (data) => {
+           
+            toast.success("Voucher updated successfully!");
+            formik.resetForm();
+            setFormState(null);
+            onClose();
+          },
+          onError: (error) => {
+            console.error("Update error:", error);
+            toast.error("Failed to update Vendor. Please try again.");
+          },
+        }
+      );
     },
   });
 
+  // Display existing image if available
+  const [existingImage, setExistingImage] = useState(null);
+
+  useEffect(() => {
+    if (formState?.image) {
+      setExistingImage(formState.image);
+    }
+  }, [formState]);
+
+  // Alternative approach: Manually set values when formState changes
+  useEffect(() => {
+    if (isOpen && formState) {
+      formik.setValues({
+        voucherName: formState?.name || "",
+        vendor: formState?.category || "",
+        description: formState?.detail || "",
+        price: formState?.price || "",
+        // status: formState?.status || "",
+        photo: null,
+      });
+    }
+  }, [isOpen, formState]);
+
+  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       formik.resetForm();
+      setExistingImage(null);
+      setFormState(null);
     }
   }, [isOpen]);
 
@@ -122,11 +212,7 @@ const EditVoucher = ({
               label="Vendor"
               placeholder="Select Vendor"
               isSelect={true}
-              options={[
-                { value: "CompTIA", label: "CompTIA" },
-                { value: "AWS", label: "AWS" },
-                // Add more vendors as needed
-              ]}
+              options={vendorOptions}
               error={formik.errors.vendor}
               touched={formik.touched.vendor}
               {...formik.getFieldProps("vendor")}
@@ -153,7 +239,7 @@ const EditVoucher = ({
             />
 
             {/* Status Dropdown */}
-            <InputFields
+            {/* <InputFields
               label="Status"
               placeholder="Select status"
               isSelect={true}
@@ -164,24 +250,49 @@ const EditVoucher = ({
               error={formik.errors.status}
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
-            />
+            /> */}
 
             {/* Upload Photo */}
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">Upload Photo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Photo</label>
               <div
-                className={`w-full border-dotted border-[#4755E5] border-1 rounded-md mt-2 mb-2 p-4 ${
+                className={`w-full border-dotted border-[#4755E5] border-2 rounded-md p-6 ${
                   formik.touched.photo && formik.errors.photo ? "border-red-500" : ""
                 }`}
               >
                 {!formik.values.photo ? (
                   <label
                     htmlFor="photoUpload"
-                    className="cursor-pointer flex flex-col items-center justify-center"
+                    className="cursor-pointer flex flex-col items-center justify-center py-4"
                   >
-                    <img src={uploadButton} className="w-28" alt="Upload" />
-                    <span className="text-[#111217] text-[14px]">
-                      Drag & Drop or choose file to upload
+                    {/* Show existing image inside the upload area */}
+                    {existingImage && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 mb-2 text-center">Current Image:</p>
+                        <div className="relative inline-block">
+                          <img
+                            src={existingImage}
+                            alt="Current Voucher"
+                            className="w-24 h-24 object-cover rounded-md border shadow-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setExistingImage(null);
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm cursor-pointer hover:bg-red-600 shadow-md"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <img src={uploadButton} className="w-16 h-16 mb-3" alt="Upload" />
+                    <span className="text-[#111217] text-[14px] font-medium mb-1">
+                      {existingImage ? "Choose new file to replace" : "Drag & Drop or choose file to upload"}
                     </span>
                     <span className="text-[#A4A5AB] text-[12px]">
                       Supported formats: JPEG, PNG
@@ -195,27 +306,31 @@ const EditVoucher = ({
                         const file = e.target.files[0];
                         formik.setFieldValue("photo", file);
                         formik.setTouched({ photo: true });
+                        setExistingImage(null); // Hide existing image when new one is selected
                       }}
                     />
                   </label>
                 ) : (
-                  <div className="relative flex items-center justify-center">
+                  <div className="relative flex items-center justify-center py-4">
                     <img
                       src={URL.createObjectURL(formik.values.photo)}
-                      alt="Uploaded"
-                      className="w-28 object-cover rounded-md"
+                      alt="New Upload"
+                      className="w-32 h-32 object-cover rounded-md border"
                     />
-                    <div className="absolute -top-2 right-36">
-                      <div
-                        onClick={() => {
-                          formik.setFieldValue("photo", null);
-                          formik.setFieldError("photo", "");
-                        }}
-                        className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
-                      >
-                        x
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        formik.setFieldValue("photo", null);
+                        formik.setFieldError("photo", "");
+                        // Restore existing image if available
+                        if (formState?.image) {
+                          setExistingImage(formState.image);
+                        }
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm cursor-pointer hover:bg-red-600 shadow-md"
+                    >
+                      ×
+                    </button>
                   </div>
                 )}
               </div>
@@ -237,7 +352,7 @@ const EditVoucher = ({
                 type="submit"
                 className="px-8 py-2 bg-[#4755E5] text-white rounded-full cursor-pointer"
               >
-                Add
+                Update
               </button>
             </div>
           </form>

@@ -4,6 +4,9 @@ import * as Yup from "yup";
 import InputFields from "../../InputFields/InputFields";
 import { uploadButton } from "../../../assets/index";
 
+import { AddResultMutation} from "../../../Services/AddResultService"
+import toast, { Toaster } from "react-hot-toast";
+
 const AddVendor = ({
   isOpen,
   onClose,
@@ -13,6 +16,8 @@ const AddVendor = ({
   setFormState,
 }) => {
   // Enhanced scroll prevention effect
+  const mutation = AddResultMutation();
+
   useEffect(() => {
     if (isOpen) {
       const scrollY = window.scrollY;
@@ -48,15 +53,16 @@ const AddVendor = ({
     };
   }, [isOpen]);
 
+  
   const formik = useFormik({
     initialValues: {
-      name: formState.vendorName|| "",
+      name: "",
       status: "", // Default status
       photo: null,      // File upload field
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
-      status: Yup.string().required("Status is required"),
+      status: Yup.string().required("Category is required"),
       photo: Yup.mixed()
         .test(
           "fileFormat",
@@ -70,8 +76,31 @@ const AddVendor = ({
         ),
     }),
     onSubmit: (values) => {
-      console.log("Form values:", { ...values });
-      handleSubmit(values);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("is_it_voucher",values.status)
+      
+      if (values.photo) {
+        formData.append("voucher_image", values.photo);
+      }
+
+      mutation.mutate(
+        {
+          payload: formData,
+          path: "admin/add-vendors/",
+          queryKey: "add-vendors", // 👈 Add this to enable refetch
+        },
+        {
+          onSuccess: (data) => {
+            toast.success("Vendor created successfully!");
+            formik.resetForm(); // Reset form after successful submission
+            onClose(); // Close modal on success
+          },
+          onError: (error) => {
+            toast.error("Failed to create Vendor. Please try again.");
+          },
+        }
+      );
     },
   });
 
@@ -109,12 +138,12 @@ const AddVendor = ({
 
             {/* Status Dropdown */}
             <InputFields
-              label="Status"
+              label="IT Voucher"
               placeholder="Select status"
               isSelect={true}
               options={[
-                { value: "Active", label: "Active" },
-                { value: "Inactive", label: "Inactive" },
+                { value: "true", label: "YES" },
+                { value: "false", label: "NO" },
               ]}
               error={formik.errors.status}
               touched={formik.touched.status}

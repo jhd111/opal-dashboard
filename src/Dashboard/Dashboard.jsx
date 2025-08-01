@@ -16,7 +16,7 @@ function Dashboard() {
         <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
         {/* Content */}
-        <div className="flex-1 bg-[#F9FAFB] w-full h-full p-4 overflow-x-hidden">
+        <div className="flex-1 bg-[#F9FAFB]  h-full p-4 overflow-x-hidden">
           <Outlet />
         </div>
       </div>
@@ -25,3 +25,4 @@ function Dashboard() {
   }
 
 export default Dashboard;
+

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Table from "../../Components/ReusableTable/Table";
 
 import { edit, deleteimg, file } from "../../assets/index";
@@ -7,6 +7,15 @@ import { MdKeyboardArrowRight } from "react-icons/md";
 import AddNewTestingService from "../../Components/Modal/AddNewTestingService/AddNewTestingService";
 import EditNewTestingService from "../../Components/Modal/AddNewTestingService/EditTestingService";
 
+import { fetchResults } from "../../Services/GetResults";
+import { useDeleteResultMutation } from "../../Services/DeleteResult";
+import Loader from "../../Components/Loader/Loader";
+import { AddResultMutation} from "../../Services/AddResultService"
+import { toast } from "react-hot-toast";
+import useDebouncing from "../../Components/Debouncing/Debouncing"
+import { SearchResults } from "../../Services/Search";
+
+
 const TestingServices = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -14,84 +23,188 @@ const TestingServices = () => {
     useState(false);
   const [isEditTestingServiceModalOpen, setEditTestingServiceModalOpen] =
     useState(false);
+    const [transformedData1, setTransformedData1] = useState({ "Table Data1": [] });
+    const [showModal, setShowModal] = useState(false);
 
   const [formState, setFormState] = useState({
     name: "",
   });
-console.log("formState.name",formState)
+// fetch Services
+
+  const {
+    data: ResultsApi,
+    isLoading,
+    error,
+  } = fetchResults("testing-services", "/api/admin/create-testing-service/");
+  // search Services 
+  const [searchTable1, setSearchTable1] = useState("")
+  const debouncedSearchTable1 = useDebouncing(searchTable1, 2000)
+  const { data: ResultSearch, isLoading: IsLoadingResultSearch } = 
+  SearchResults("testing-services", "/api/admin/search-name-in-testing-services/", debouncedSearchTable1);
+
+  const columns = [
+    { label: "No.", accessor: "no" },
+    { label: "Service Name", accessor: "servicename" },
+    // { label: "Status", accessor: "status" },
+  ];
+
+   // Transformation function
+   const transformResultsApiResponse = (apiResponse, currentPage, pageSize) => {
+    const data = apiResponse || [];
+  console.log("data",data)
+    return data?.map((item, index) => {
+      const srNo = (currentPage - 1) * pageSize + index + 1;
+      return {
+        no: `${srNo}`,
+        servicename: item?.name || "-",
+        
+        ...item,
+      };
+    });
+  };
+   // Effect to transform and store API data
+   useEffect(() => {
+    if (ResultsApi?.data) {
+      const transformed = transformResultsApiResponse(
+        ResultsApi.data,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }, [ResultsApi, currentPage]);
+  
+  useEffect(() => {
+    if (ResultSearch?.data) {
+      const transformed = transformResultsApiResponse(
+        ResultSearch.data,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }, [ResultSearch, currentPage]);
+
+  useEffect(() => {
+    if (debouncedSearchTable1 === "") {
+      // Reset to original data instead of removing the property
+      if (ResultsApi?.data) {
+        const transformed = transformResultsApiResponse(
+          ResultsApi.data,
+          currentPage,
+          10
+        );
+        setTransformedData1({ "Table Data1": transformed });
+      }
+    }
+  }, [debouncedSearchTable1, ResultsApi, currentPage]);
+
   // Add this handler
   const handleAddNewProduct = (row) => {
     console.log(row);
     setTestingServiceModalOpen(true);
   };
 
-  const columns = [
-    { label: "No.", accessor: "no" },
-    { label: "Service Name", accessor: "serviceName" },
-    // { label: "Status", accessor: "status" },
-  ];
+ 
+// --------------------------delete result---------------------
+const { mutate: deleteResult } = useDeleteResultMutation(["testing-services"]);
 
-  const data1 = [
+// FIXED: Properly handle the delete function
+const handleDelete = () => {
+  if (!formState?.id) {
+    console.error("No item selected for deletion");
+    return;
+  }
+
+  const id = formState.id;
+  console.log("Deleting id:", id);
+
+  deleteResult(
     {
-      no: 1,
-      serviceName: "Abu Dhabi Department of Health",
-      status: "active",
+      id: id,
+      path: "admin/manage-testing-service/",
     },
     {
-      no: 2,
-      serviceName: "Dubai Healthcare City",
-      status: "inactive",
-    },
+      onSuccess: () => {
+        toast.success("Testing service deleted successfully!");
+        setShowModal(false);
+        setFormState(null);
+      },
+      onError: (error) => {
+        toast.error("Failed to delete result:", error);
+        setShowModal(false);
+      },
+    }
+  );
+};
+  
+// --------------------toggle api---------------
+
+const mutate = AddResultMutation();
+
+// FIXED: Improved toggle status handler
+const handleToggleStatus = (currentStatus, id) => {
+  // Handle different types of status values
+  let isCurrentlyActive = false;
+  
+  if (typeof currentStatus === 'boolean') {
+    isCurrentlyActive = currentStatus;
+  } else if (typeof currentStatus === 'string') {
+    isCurrentlyActive = currentStatus.toLowerCase() === 'true';
+  } else if (typeof currentStatus === 'number') {
+    isCurrentlyActive = currentStatus === 1;
+  }
+  
+  const newStatus = !isCurrentlyActive;
+
+  console.log("Current Status:", currentStatus, "Type:", typeof currentStatus);
+  console.log("Is Currently Active:", isCurrentlyActive);
+  console.log("New Status:", newStatus);
+
+  // Try sending as JSON first
+  const payload = {
+    status: newStatus,
+    id: id
+  };
+
+  toast.promise(
+    mutate.mutateAsync({
+      payload,
+      path: `admin/update-testing-service-status/`,
+      queryKey:"testing-services"
+    }),
     {
-      no: 3,
-      serviceName: "Sharjah Medical District",
-      status: "active",
-    },
-    {
-      no: 4,
-      serviceName: "Ras Al Khaimah Health Services",
-      status: "active",
-    },
-    {
-      no: 5,
-      serviceName: "Ajman Health Authority",
-      status: "inactive",
-    },
-    {
-      no: 6,
-      serviceName: "Fujairah Health Services",
-      status: "active",
-    },
-    {
-      no: 7,
-      serviceName: "Umm Al Quwain Health Services",
-      status: "active",
-    },
-    {
-      no: 8,
-      serviceName: "Al Ain Health Services",
-      status: "inactive",
-    },
-    {
-      no: 9,
-      serviceName: "NMC Health",
-      status: "active",
-    },
-    {
-      no: 10,
-      serviceName: "SEHA",
-      status: "inactive",
-    },
-  ];
+      success: `Status changed to ${newStatus ? "Active" : "Inactive"}`,
+      error: "Failed to update status",
+    }
+  );
+};
   const toggle = { toggle: true };
 
   const toggleIcon = {
-    status: (
-      <label className="inline-flex items-center cursor-pointer">
-        <input type="checkbox" className="sr-only peer" />
-        <div className="relative w-11 h-6 bg-gray-200   rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
-      </label>
-    ),
+    status: (row) => {
+      // Determine if the status is active
+      let isActive = false;
+      if (typeof row.status === 'boolean') {
+        isActive = row.status;
+      } else if (typeof row.status === 'string') {
+        isActive = row.status.toLowerCase() === 'true';
+      } else if (typeof row.status === 'number') {
+        isActive = row.status === 1;
+      }
+
+      return (
+        <label className="inline-flex items-center cursor-pointer">
+          <input 
+            type="checkbox" 
+            className="sr-only peer" 
+            checked={isActive}
+            onChange={() => handleToggleStatus(row.status, row.id)}
+          />
+          <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
+        </label>
+      );
+    },
   };
 
   const actions = { viewDetails: false, edit: true, delete: true };
@@ -113,7 +226,7 @@ console.log("formState.name",formState)
       {/* ------------------Table------------------ */}
       <Table
         columns={columns}
-        data={data1}
+        data={transformedData1["Table Data1"]}
         actions={actions}
         icons={icons}
         borderRadius={true}
@@ -131,7 +244,13 @@ console.log("formState.name",formState)
         onAddNewProduct={handleAddNewProduct}
         // setDeleteUser
         setOpenModal={setEditTestingServiceModalOpen}
+        setDeleteModal={setShowModal}
         onEdit={setFormState}
+        setDeleteUser={setFormState}
+        Loading={isLoading}
+        ErrorTableError={error}
+        setSearchTable={setSearchTable1}
+        isLoadingSearch={IsLoadingResultSearch}
       />
 
       {/* ------------------Add Modal------------------  */}
@@ -152,6 +271,31 @@ console.log("formState.name",formState)
         formState={formState}
         setFormState={setFormState}
       />
+
+{showModal && (
+        <div className="fixed inset-0 flex items-center backdrop-blur-md bg-gray-800/30 justify-center z-60">
+          <div className="bg-white p-5 rounded-lg w-[95%] lg:w-[40%] 2xl:w-[40%] shadow-2xl max-h-[95vh] overflow-y-auto">
+            <h2 className="text-lg text-center font-semibold text-gray-800 mb-4">
+              Are you sure you want to Delete?
+            </h2>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -1,5 +1,8 @@
 import React, { useState, useCallback } from "react";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import Base_url from "../../Base_url/Baseurl";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 const MediaUploadInterface = () => {
   const [activeTab, setActiveTab] = useState("Hero Banner");
@@ -11,26 +14,47 @@ const MediaUploadInterface = () => {
 
   const tabs = ["Hero Banner", "Media Gallery", "Awards & Certificates"];
   const apiEndpoints = {
-    "Hero Banner": "/api/hero-banner",
-    "Media Gallery": "/api/media-gallery",
-    "Awards & Certificates": "/api/awards-certificates",
+    "Hero Banner": `${Base_url}/api/admin/upload-image/`,
+    "Media Gallery": `${Base_url}/api/admin/upload-media-gallery/`,
+    "Awards & Certificates": `${Base_url}/api/admin/upload-certifications-award/`,
   };
-
+const token=localStorage.getItem("token")
   const handlePublishChanges = async () => {
     const currentImages = tabImages[activeTab] || [];
     const endpoint = apiEndpoints[activeTab];
+  
+    if (!endpoint) {
+      toast.error("Invalid tab selected.");
+      return;
+    }
+  
     try {
       const formData = new FormData();
-      currentImages.forEach((image, index) => {
-        formData.append(`images[${index}]`, image.file);
+      currentImages.forEach((image) => {
+        formData.append('image', image.file);
       });
-      console.log(`Uploading to ${endpoint}:`, currentImages);
-      alert(`${activeTab} images uploaded successfully!`);
+  
+      
+  
+      const response = await axios.post(endpoint, formData,
+        
+        {
+        headers: {
+          
+          Authorization: `Token ${token}`,
+          // Note: Don't set Content-Type manually, let axios handle it with FormData
+        },
+      });
+  
+      toast.success(`${activeTab} images uploaded successfully!`);
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Upload failed. Please try again.");
+      const errorMessage =
+        error.response?.data?.message || "Upload failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
+  
 
   const processFile = useCallback((file) => {
     return new Promise((resolve) => {

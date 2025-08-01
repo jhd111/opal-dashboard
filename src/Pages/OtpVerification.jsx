@@ -2,9 +2,12 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import login from "../assets/Login.png";
 import opal_logo from "../assets/opal_logo.png";
+import Base_url from "../Base_url/Baseurl"
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 
 const OtpVerification = () => {
-  const otpLength = 4;
+  const otpLength = 4 ;
   const [otp, setOtp] = useState(new Array(otpLength).fill(""));
   const inputsRef = useRef([]);
 
@@ -45,16 +48,74 @@ const OtpVerification = () => {
     inputsRef.current[nextIndex]?.focus();
   };
 
-  const handleSubmit = () => {
-    const finalOtp = otp.join("");
-    console.log("Entered OTP:", finalOtp);
-    navigate("/reset-password")
+  const email=localStorage.getItem("email")
 
-    // Trigger verification API here
+  const handleSubmit = async () => {
+
+    try {
+      const response = await axios.post(
+        `${Base_url}/api/admin/verify-otp/`,
+        { 
+          email:email,
+          otp: String(otp).replace(/,/g, '') 
+        }
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+
+        // Save token and remember flag
+       
+
+        toast.success("OTP Verified successfully");
+
+        setTimeout(() => {
+          navigate("/reset-password");
+        }, 1000);
+      }
+      else{
+        toast.error(" Otp not verified");
+      }
+    } catch (error) {
+      toast.error("Otp not verified." );
+    } 
   };
+
+// handle resend 
+const handleResent = async () => {
+  try {
+    const response = await axios.post(
+      `${Base_url}/api/admin/forgot-password/`,
+
+      {
+        email: email,
+        
+      }
+    );
+
+    if (response.status === 200) {
+      const data = response.data;
+
+      // Save token and remember flag
+     
+
+      toast.success("OTP sent successfully")
+
+    
+    }
+    else{
+      toast.error(" Please try again.");
+    }
+  } catch (error) {
+    toast.error(" Please try again.", );
+  } 
+};
+
+
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
+   
       {/* Left Image */}
       <div className="lg:w-1/2 hidden md:block h-screen">
         <img
@@ -100,7 +161,7 @@ const OtpVerification = () => {
             </button>
 
             <p className="text-center text-sm text-[#667085] mt-4">
-              Didn’t receive code? <span className="text-[#1849A9] font-medium cursor-pointer">Resend</span>
+              Didn’t receive code? <span onClick={handleResent} className="text-[#1849A9] font-medium cursor-pointer">Resend</span>
             </p>
           </div>
         </div>

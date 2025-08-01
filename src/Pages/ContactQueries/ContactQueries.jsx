@@ -1,15 +1,28 @@
 
 
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import Table from "../../Components/ReusableTable/Table";
 
 import { edit, deleteimg, file } from "../../assets/index";
 
 import { MdKeyboardArrowRight } from "react-icons/md";
+import { FaReplyAll } from "react-icons/fa";
 
-import Deals from "../../Components/Modal/Deals/Deals"
-import EditDeals from "../../Components/Modal/Deals/EditDeal";
+import ContactModal from "../../Components/Modal/Contact/ContactModal";
+import { fetchResults } from "../../Services/GetResults";
+
 const ContactQueries = () => {
+
+  const {
+    data: ResultsApi,
+    isLoading,
+    error,
+    refetch
+  } = fetchResults("get-contact-us", "/api/admin/get-contact-us/")
+
+  const [transformedData1, setTransformedData1] = useState({ "Table Data1": [] });
+ 
+const [iscomposeDealModalOpen,setcomposeDealModalOpen]=useState(false)
   const [currentPage, setCurrentPage] = useState(1);
 
   const [isDealModalOpen, setDealModalOpen] =
@@ -24,8 +37,40 @@ console.log("formState.name",formState)
   // Add this handler
   const handleAddNewProduct = (row) => {
     console.log(row);
-    setDealModalOpen(true);
+    setcomposeDealModalOpen(true);
   };
+
+  const transformResultsApiResponse = (apiResponse, currentPage, pageSize) => {
+    const data = apiResponse || [];
+  
+ 
+
+    return data.map((item, index) => {
+      const srNo = (currentPage - 1) * pageSize + index + 1;
+  
+      return {
+        no: `${srNo}`,
+        userName: item?.name || "-",
+        email: item?.email || "-",
+        phoneNumber: item?.phone_number || "N/A", // could be a file link
+        message: item?.message || "N/A",
+        date:item?.created_at,
+        ...item,
+      };
+    });
+  };
+  
+   // Effect to transform and store API data
+   useEffect(() => {
+    if (ResultsApi?.data) {
+      const transformed = transformResultsApiResponse(
+        ResultsApi.data,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }, [ResultsApi, currentPage]);
 
   const columns = [
     { label: "No.", accessor: "no" },
@@ -34,7 +79,7 @@ console.log("formState.name",formState)
     { label: "Email", accessor: "email" },
     { label: "Message", accessor: "message" },
     { label: "Date", accessor: "date" },
-    { label: "Actions", accessor: "actions" },
+    // { label: "Actions", accessor: "actions" },
   ];
   
   const data1 = [
@@ -95,11 +140,11 @@ console.log("formState.name",formState)
     ),
   };
 
-  const actions = { viewDetails: false, edit: true, delete: true };
+  const actions = { viewDetails: false, edit: true, delete: false };
 
   const icons = {
     viewDetails: <MdKeyboardArrowRight />,
-    edit: <img src={edit} alt="edit" className="w-4 h-4" />,
+    edit:  <FaReplyAll    className="w-5 h-5 text-[#023337]" />,
     delete: <img src={deleteimg} alt="delete" className="w-4 h-4" />,
   };
 
@@ -114,7 +159,7 @@ console.log("formState.name",formState)
       {/* ------------------Table------------------ */}
       <Table
         columns={columns}
-        data={data1}
+        data={transformedData1["Table Data1"]}
         actions={actions}
         icons={icons}
         borderRadius={true}
@@ -130,21 +175,35 @@ console.log("formState.name",formState)
         // toggleIcon={toggleIcon}
         isOpen="true"
         onAddNewProduct={handleAddNewProduct}
+        openCompose={handleAddNewProduct}
         // setDeleteUser
         setOpenModal={setEditDealModalOpen}
         onEdit={setFormState}
         compose={true}
+        Loading={isLoading}
+        ErrorTableError={error}
       />
 
      
       {/* ------------------Edit Modal------------------  */}
-      <EditDeals
+      <ContactModal
         isOpen={isEditDealModalOpen}
         onClose={() => setEditDealModalOpen(false)}
-        title="Update Deal"
+        title="Contact "
         nameLabel="Exam Name"
         formState={formState}
         setFormState={setFormState}
+        tablecompose={true}
+      />
+
+      <ContactModal
+        isOpen={iscomposeDealModalOpen}
+        onClose={() => setcomposeDealModalOpen(false)}
+        title="Contact "
+        nameLabel="Exam Name"
+        formState={formState}
+        setFormState={setFormState}
+        tablecompose={false}
       />
     </div>
   );
