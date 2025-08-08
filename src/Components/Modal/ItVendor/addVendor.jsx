@@ -14,6 +14,7 @@ const AddVendor = ({
   nameLabel,
   formState,
   setFormState,
+  category,
 }) => {
   // Enhanced scroll prevention effect
   const mutation = AddResultMutation();
@@ -57,30 +58,35 @@ const AddVendor = ({
   const formik = useFormik({
     initialValues: {
       name: "",
-      status: "", // Default status
+      // status: "", // Default status
       photo: null,      // File upload field
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
-      status: Yup.string().required("Category is required"),
-      photo: Yup.mixed()
-        .test(
-          "fileFormat",
-          "Only JPEG and PNG formats are supported.",
-          (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
-        )
-        .test(
-          "fileSize",
-          "File size must not exceed 5 MB.",
-          (value) => !value || (value && value.size / (1024 * 1024) <= 5)
-        ),
+      // Only add photo validation when category is false (not true)
+      ...(!category && {
+        photo: Yup.mixed()
+          .test(
+            "fileFormat",
+            "Only JPEG and PNG formats are supported.",
+            (value) =>
+              !value || ["image/jpeg", "image/png"].includes(value?.type)
+          )
+          .test(
+            "fileSize",
+            "File size must not exceed 5 MB.",
+            (value) => !value || value.size / (1024 * 1024) <= 5
+          ),
+      }),
     }),
+    
     onSubmit: (values) => {
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("is_it_voucher",values.status)
-      
-      if (values.photo) {
+      formData.append("is_it_voucher", category ? false : true);
+
+      // Only append photo if category is false
+      if (!category && values.photo) {
         formData.append("voucher_image", values.photo);
       }
 
@@ -129,7 +135,7 @@ const AddVendor = ({
             {/* Name Field */}
             <InputFields
               label={nameLabel}
-              placeholder="Enter Vendor Name"
+              placeholder={category ? "Enter Category" : "Enter Vendor Name"}
               type="text"
               error={formik.errors.name}
               touched={formik.touched.name}
@@ -137,7 +143,7 @@ const AddVendor = ({
             />
 
             {/* Status Dropdown */}
-            <InputFields
+            {/* <InputFields
               label="IT Voucher"
               placeholder="Select status"
               isSelect={true}
@@ -148,65 +154,67 @@ const AddVendor = ({
               error={formik.errors.status}
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
-            />
+            /> */}
 
-            {/* Upload Photo */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700">Upload Photo</label>
-              <div
-                className={`w-full border-dotted border-[#4755E5] border-1 rounded-md mt-2 mb-2 p-4 ${
-                  formik.touched.photo && formik.errors.photo ? "border-red-500" : ""
-                }`}
-              >
-                {!formik.values.photo ? (
-                  <label
-                    htmlFor="photoUpload"
-                    className="cursor-pointer flex flex-col items-center justify-center"
-                  >
-                    <img src={uploadButton} className="w-28" alt="Upload" />
-                    <span className="text-[#111217] text-[14px]">
-                      Drag & Drop or choose file to upload
-                    </span>
-                    <span className="text-[#A4A5AB] text-[12px]">
-                      Supported formats: JPEG, PNG
-                    </span>
-                    <input
-                      id="photoUpload"
-                      type="file"
-                      accept="image/jpeg, image/png"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        formik.setFieldValue("photo", file);
-                        formik.setTouched({ photo: true });
-                      }}
-                    />
-                  </label>
-                ) : (
-                  <div className="relative flex items-center justify-center">
-                    <img
-                      src={URL.createObjectURL(formik.values.photo)}
-                      alt="Uploaded"
-                      className="w-28 object-cover rounded-md"
-                    />
-                    <div className="absolute -top-2 right-36">
-                      <div
-                        onClick={() => {
-                          formik.setFieldValue("photo", null);
-                          formik.setFieldError("photo", "");
+            {/* Upload Photo - Only show when category is false */}
+            {!category && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">Upload Photo</label>
+                <div
+                  className={`w-full border-dotted border-[#4755E5] border-1 rounded-md mt-2 mb-2 p-4 ${
+                    formik.touched.photo && formik.errors.photo ? "border-red-500" : ""
+                  }`}
+                >
+                  {!formik.values.photo ? (
+                    <label
+                      htmlFor="photoUpload"
+                      className="cursor-pointer flex flex-col items-center justify-center"
+                    >
+                      <img src={uploadButton} className="w-28" alt="Upload" />
+                      <span className="text-[#111217] text-[14px]">
+                        Drag & Drop or choose file to upload
+                      </span>
+                      <span className="text-[#A4A5AB] text-[12px]">
+                        Supported formats: JPEG, PNG
+                      </span>
+                      <input
+                        id="photoUpload"
+                        type="file"
+                        accept="image/jpeg, image/png"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          formik.setFieldValue("photo", file);
+                          formik.setTouched({ photo: true });
                         }}
-                        className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
-                      >
-                        x
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative flex items-center justify-center">
+                      <img
+                        src={URL.createObjectURL(formik.values.photo)}
+                        alt="Uploaded"
+                        className="w-28 object-cover rounded-md"
+                      />
+                      <div className="absolute -top-2 right-36">
+                        <div
+                          onClick={() => {
+                            formik.setFieldValue("photo", null);
+                            formik.setFieldError("photo", "");
+                          }}
+                          className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
+                        >
+                          x
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                </div>
+                {formik.errors.photo && formik.touched.photo && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.photo}</p>
                 )}
               </div>
-              {formik.errors.photo && formik.touched.photo && (
-                <p className="text-red-500 text-sm mt-1">{formik.errors.photo}</p>
-              )}
-            </div>
+            )}
 
             {/* Buttons */}
             <div className="flex justify-end mt-4">

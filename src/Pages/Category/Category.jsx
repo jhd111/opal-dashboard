@@ -18,7 +18,7 @@ import useDebouncing from "../../Components/Debouncing/Debouncing";
 import { SearchResults } from "../../Services/Search";
 import { EditResultMutation} from "../../Services/Editservice"
 
-const Voucher = () => {
+const Category = () => {
   // ------------------------vendor states---------------------
   const [currentPage, setCurrentPage] = useState(1);
   const [parentActiveTab, setparentActiveTab] = useState("Vendor");
@@ -50,7 +50,7 @@ const Voucher = () => {
       accessor: "no",
     },
     {
-      label: "Vendor Name",
+      label: "Category",
       accessor: "name",
     },
   ];
@@ -445,7 +445,7 @@ const [searchTable2, setSearchTable2] = useState("")
 
   return (
     <div className=" flex flex-col gap-2">
-      <div className="flex w-full lg:w-[23%] bg-white border border-[#F0F1F3] p-2 rounded-md">
+      {/* <div className="flex w-full lg:w-[23%] bg-white border border-[#F0F1F3] p-2 rounded-md">
         {dateFilterButtons.map((button, index) => (
           <button
             key={index}
@@ -460,10 +460,10 @@ const [searchTable2, setSearchTable2] = useState("")
             {button.label}
           </button>
         ))}
-      </div>
+      </div> */}
       <div className="flex justify-between items-center">
         <div className="lato text-[#023337] text-lg font-bold">
-          Vendors List
+          Category
         </div>
       </div>
 
@@ -479,7 +479,7 @@ const [searchTable2, setSearchTable2] = useState("")
           search={true}
           pagination={true}
           modal={true}
-          modalTitle="Add New Vendors"
+          modalTitle="Add Category"
           status={toggle}
           toggleIcon={toggleIcon}
           onToggle={handleToggleStatus}
@@ -527,20 +527,22 @@ const [searchTable2, setSearchTable2] = useState("")
       <AddVendor
         isOpen={isAddVendorModalOpen}
         onClose={() => setAddVendorModalOpen(false)}
-        title="Add New Vendor"
-        nameLabel="Vendor Name"
+        title="Add Category"
+        nameLabel="Category"
         formState={formState}
         setFormState={setFormState}
+        category={true}
       />
 
       {/* ------------------Edit Vendor Modal------------------  */}
       <EditVendor
         isOpen={isEditVendorServiceModalOpen}
         onClose={() => setEditVendorServiceModalOpen(false)}
-        title="Update Vendor"
+        title="Update Category"
         nameLabel="Exam Name"
         formState={formState}
         setFormState={setFormState}
+        category={true}
       />
 
       {/* ------------------Add Voucher Modal------------------  */}
@@ -615,4 +617,4 @@ const [searchTable2, setSearchTable2] = useState("")
   );
 };
 
-export default Voucher;
+export default Category;

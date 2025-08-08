@@ -71,6 +71,7 @@ const DealsListing = () => {
   // Transform function for fetch API response (array of payments)
   const transformFetchApiResponse = (apiResponse, currentPage, pageSize) => {
     const data = apiResponse?.payments || [];
+    console.log(data)
 
     return data
       .filter((item) => item.order_id && item.product_name) // Filter out entries with missing order_id or product_name
@@ -88,6 +89,7 @@ const DealsListing = () => {
         return {
           no: `${srNo}`,
           orderId: item.order_id || "N/A",
+          typee:item.product_type || "N/A",
           voucherName: item.product_name || "N/A",
           quantity: item.product_quantity || 1,
           amount: item.product_price || "0.00",
@@ -153,8 +155,10 @@ const DealsListing = () => {
 
   // columns
   const columns = [
+    {label: "Sr no", accessor: "no"},
     { label: "Order ID", accessor: "orderId" },
     { label: "Voucher Name", accessor: "voucherName" },
+    {label:"Type",accessor:"typee"},
     { label: "Quantity", accessor: "quantity" },
     { label: "Amount", accessor: "amount" },
     { label: "Date", accessor: "date" },

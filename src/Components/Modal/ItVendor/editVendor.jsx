@@ -14,6 +14,7 @@ const EditVendor = ({
   nameLabel,
   formState,
   setFormState,
+  category,
 }) => {
   console.log("EditVendor formState:", formState);
   const mutation = EditResultMutation(["add-vendors"]);
@@ -64,12 +65,12 @@ const EditVendor = ({
     enableReinitialize: true,
     initialValues: {
       name: formState?.name || '',
-      status: String(formState?.is_it_voucher ?? ''),
+      // status: String(formState?.is_it_voucher ?? ''),
       photo: formState?.voucher_image || null,
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
-      status: Yup.string().required("Status is required"),
+      // status: Yup.string().required("Status is required"),
       // photo: Yup.mixed()
       //   .test(
       //     "fileFormat",
@@ -90,10 +91,11 @@ const EditVendor = ({
       
       const formData = new FormData();
       formData.append("name", values.name);
-      formData.append("is_it_voucher", values.status);
+      // formData.append("is_it_voucher",true);
+      formData.append("is_it_voucher", category ? false : true);
       
       // Only append image if a new file is selected (File object)
-      if (values.photo && values.photo instanceof File) {
+      if (!category && values.photo && values.photo instanceof File) {
         formData.append("voucher_image", values.photo); // Changed from voucher_image to image
       }
 
@@ -173,7 +175,7 @@ const EditVendor = ({
           />
 
           {/* Status Dropdown */}
-          <InputFields
+          {/* <InputFields
             label="IT Voucher"
             placeholder="Select IT Voucher"
             isSelect={true}
@@ -184,9 +186,10 @@ const EditVendor = ({
             error={formik.errors.status}
             touched={formik.touched.status}
             {...formik.getFieldProps("status")}
-          />
+          /> */}
 
           {/* Upload Photo */}
+          {!category && (
           <div className="mt-4">
             {!formik.values.photo ? (
               // Upload UI
@@ -238,6 +241,7 @@ const EditVendor = ({
               </div>
             )}
           </div>
+          )}
 
           {/* Buttons */}
           <div className="flex justify-end mt-4">

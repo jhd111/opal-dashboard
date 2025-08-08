@@ -27,10 +27,29 @@ const AddVoucher = ({
   const vendorOptions =
   categoriesApi?.data?.map((item) => ({
     label: item.name,
-    value: item.id, // or item.id if you want to use ID
+    value: item.id, // Use ID for form submission
+    name: item.name, // Keep name for conditional logic
   })) || [];
 
   console.log("vendorOptions",vendorOptions)
+
+  // Helper function to get category name by ID
+  const getCategoryNameById = (categoryId) => {
+    const category = categoriesApi?.data?.find((item) => item.id === parseInt(categoryId));
+    return category ? category.name : "";
+  };
+
+  // Helper function to check if selected category should show type dropdown
+  const shouldShowTypeDropdown = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "Scored Practice Mock Test";
+  };
+
+  // Helper function to check if selected category should show validity field
+  const shouldShowValidityField = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "ape uni" || categoryName === "APE UNI";
+  };
 
   // Enhanced scroll prevention effect
   useEffect(() => {
@@ -84,8 +103,16 @@ const AddVoucher = ({
       voucherName: Yup.string().required("Voucher Name is required"),
       vendor: Yup.string().required("Vendor is required"),
       description: Yup.string().required("Description is required"),
-      validity: Yup.string().required("Validity is required"),
-      type: Yup.string(), // Optional field
+      validity: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowValidityField(vendorId),
+        then: (schema) => schema.required("Validity is required"),
+        otherwise: (schema) => schema,
+      }),
+      type: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowTypeDropdown(vendorId),
+        then: (schema) => schema.required("Type is required"),
+        otherwise: (schema) => schema,
+      }),
       price: Yup.number()
         .typeError("Price must be a number")
         .positive("Price must be positive")
@@ -109,8 +136,16 @@ const AddVoucher = ({
       formData.append("category", values.vendor);
       formData.append("price", values.price);
       formData.append("description", values.description);
-      formData.append("validity", values.validity);
-      formData.append("type", values.type);
+      
+      // Only append validity if it should be shown for this category
+      if (shouldShowValidityField(values.vendor)) {
+        formData.append("validity", values.validity);
+      }
+      
+      // Only append type if it should be shown for this category
+      if (shouldShowTypeDropdown(values.vendor)) {
+        formData.append("type", values.type);
+      }
 
       if (values.photo) {
         formData.append("image", values.photo);
@@ -136,6 +171,18 @@ const AddVoucher = ({
     },
   });
 
+  // Reset type and validity when vendor changes
+  useEffect(() => {
+    if (formik.values.vendor) {
+      if (!shouldShowTypeDropdown(formik.values.vendor)) {
+        formik.setFieldValue("type", "");
+      }
+      if (!shouldShowValidityField(formik.values.vendor)) {
+        formik.setFieldValue("validity", "");
+      }
+    }
+  }, [formik.values.vendor]);
+
   useEffect(() => {
     if (!isOpen) {
       formik.resetForm();
@@ -158,6 +205,7 @@ const AddVoucher = ({
             </button>
           </div>
           <form onSubmit={formik.handleSubmit} className="">
+            
             {/* Voucher Name Field */}
             <InputFields
               label="Voucher Name"
@@ -167,10 +215,11 @@ const AddVoucher = ({
               touched={formik.touched.voucherName}
               {...formik.getFieldProps("voucherName")}
             />
+            
             {/* Vendor Dropdown */}
             <InputFields
-              label="Vendor"
-              placeholder="Select Vendor"
+              label="Category"
+              placeholder="Select Category"
               isSelect={true}
               options={vendorOptions}
               error={formik.errors.vendor}
@@ -188,32 +237,36 @@ const AddVoucher = ({
               {...formik.getFieldProps("description")}
             />
 
-            {/* Validity Field */}
-            <InputFields
-              label="Validity"
-              placeholder="Enter Validity"
-              type="text"
-              error={formik.errors.validity}
-              touched={formik.touched.validity}
-              {...formik.getFieldProps("validity")}
-            />
+            {/* Validity Field - Show only for ape uni or APE UNI */}
+            {shouldShowValidityField(formik.values.vendor) && (
+              <InputFields
+                label="Validity"
+                placeholder="Enter Validity"
+                type="text"
+                error={formik.errors.validity}
+                touched={formik.touched.validity}
+                {...formik.getFieldProps("validity")}
+              />
+            )}
 
-            {/* Type Dropdown */}
-            <InputFields
-              label="Score Test Mock Test"
-              placeholder="Select Type"
-              isSelect={true}
-              options={[
-                { value: "Type A", label: "Type A" },
-                { value: "Type B", label: "Type B" },
-                { value: "Type C", label: "Type C" },
-                { value: "Type D", label: "Type D" },
-                { value: "Type E", label: "Type E" },
-              ]}
-              error={formik.errors.type}
-              touched={formik.touched.type}
-              {...formik.getFieldProps("type")}
-            />
+            {/* Type Dropdown - Show only for Scored Practice Mock Test */}
+            {shouldShowTypeDropdown(formik.values.vendor) && (
+              <InputFields
+                label="Type"
+                placeholder="Select Type"
+                isSelect={true}
+                options={[
+                  { value: "Type A", label: "Type A" },
+                  { value: "Type B", label: "Type B" },
+                  { value: "Type C", label: "Type C" },
+                  { value: "Type D", label: "Type D" },
+                  { value: "Type E", label: "Type E" },
+                ]}
+                error={formik.errors.type}
+                touched={formik.touched.type}
+                {...formik.getFieldProps("type")}
+              />
+            )}
 
             {/* Price Field */}
             <InputFields
@@ -224,6 +277,7 @@ const AddVoucher = ({
               touched={formik.touched.price}
               {...formik.getFieldProps("price")}
             />
+            
             {/* Status Dropdown */}
             <InputFields
               label="Status"
@@ -237,6 +291,7 @@ const AddVoucher = ({
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
             />
+            
             {/* Upload Photo */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700">
@@ -300,6 +355,7 @@ const AddVoucher = ({
                 </p>
               )} */}
             </div>
+            
             {/* Buttons */}
             <div className="flex justify-end mt-4">
               <button

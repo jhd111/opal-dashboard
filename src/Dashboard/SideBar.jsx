@@ -218,6 +218,21 @@ function SideBar({ isOpen, setIsOpen }) {
 
               <div
                 onClick={() => {
+                  navigate("/dashboard/category");
+                  setActiveTab("/dashboard/category");
+                }}
+                className={`flex items-center gap-3 p-3 lato rounded-lg cursor-pointer ${
+                  activeTab === "/dashboard/category"
+                    ? "bg-[#3651BF] text-white"
+                    : "text-[#6A717F] hover:bg-gray-50"
+                }`}
+              >
+                <img src={productlist} alt="" className="w-5 h-5" />
+                <span>Category</span>
+              </div>
+
+              <div
+                onClick={() => {
                   navigate('/dashboard/alpha');
                   setActiveTab('/dashboard/alpha');
                 }}

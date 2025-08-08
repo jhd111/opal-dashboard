@@ -413,8 +413,8 @@ const EditDeals = ({
 
               {/* Title Field */}
               <InputFields
-                label="Title"
-                placeholder="Enter Deal Title"
+                label="Description"
+                placeholder="Enter Deal Description"
                 type="text"
                 error={formik.errors.title}
                 touched={formik.touched.title}

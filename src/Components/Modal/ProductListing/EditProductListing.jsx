@@ -1,273 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import { useFormik } from "formik";
-// import * as Yup from "yup";
-// import InputFields from "../../InputFields/InputFields";
-// import { uploadButton, checkout } from "../../../assets/index";
-
-// const EditProductListing = ({
-//   isOpen,
-//   onClose,
-//   title,
-//   nameLabel,
-//   formState,
-//   setFormState,
-// }) => {
-//   // Enhanced scroll prevention effect
-//   useEffect(() => {
-//     if (isOpen) {
-//       const scrollY = window.scrollY;
-//       document.body.style.position = "fixed";
-//       document.body.style.top = `-${scrollY}px`;
-//       document.body.style.width = "100%";
-//       document.body.style.overflow = "hidden";
-//       document.documentElement.style.overflow = "hidden";
-//       document.body.setAttribute("data-scroll-y", scrollY.toString());
-//     } else {
-//       const scrollY = document.body.getAttribute("data-scroll-y");
-//       document.body.style.position = "";
-//       document.body.style.top = "";
-//       document.body.style.width = "";
-//       document.body.style.overflow = "";
-//       document.documentElement.style.overflow = "";
-//       if (scrollY) {
-//         window.scrollTo(0, parseInt(scrollY));
-//         document.body.removeAttribute("data-scroll-y");
-//       }
-//     }
-//     return () => {
-//       document.body.style.position = "";
-//       document.body.style.top = "";
-//       document.body.style.width = "";
-//       document.body.style.overflow = "";
-//       document.documentElement.style.overflow = "";
-//       const scrollY = document.body.getAttribute("data-scroll-y");
-//       if (scrollY) {
-//         window.scrollTo(0, parseInt(scrollY));
-//         document.body.removeAttribute("data-scroll-y");
-//       }
-//     };
-//   }, [isOpen]);
-
-  
-//   // Formik Configuration
-//   const formik = useFormik({
-//     initialValues: {
-//       productName: formState.productName || "",
-//       productDescription: formState.productDescription || "",
-//       productPrice: formState.productPrice || "",
-//       discountedPrice: formState.discountedPrice || "",
-//       validityAfterPurchase: formState.validityAfterPurchase || "",
-//       productImage: formState.productImage || null,
-//     },
-//     validationSchema: Yup.object({
-//       productName: Yup.string().required("Product Name is required"),
-//       productDescription: Yup.string().required("Product Description is required"),
-//       productPrice: Yup.number()
-//         .typeError("Product Price must be a number")
-//         .positive("Product Price must be positive")
-//         .required("Product Price is required"),
-//       discountedPrice: Yup.number()
-//         .typeError("Discounted Price must be a number")
-//         .positive("Discounted Price must be positive"),
-//       validityAfterPurchase: Yup.string(),
-//       productImage: Yup.mixed()
-//         .test(
-//           "fileFormat",
-//           "Only JPEG and PNG formats are supported.",
-//           (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
-//         )
-//         .test(
-//           "fileSize",
-//           "File size must not exceed 5 MB.",
-//           (value) => !value || (value && value.size / (1024 * 1024) <= 5)
-//         ),
-//     }),
-//     onSubmit: (values) => {
-//       console.log("Form values:", { ...values });
-//       handleSubmit(values);
-//     },
-//   });
-
-//   useEffect(() => {
-//     if (!isOpen) {
-//       formik.resetForm();
-//     }
-//   }, [isOpen]);
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <>
-//       <div className="fixed inset-0 flex items-center backdrop-blur-md bg-gray-800/30 justify-center z-50">
-//         <div className="bg-white p-6 rounded-lg w-[95%] lg:w-[800px] 2xl:w-[900px] shadow-2xl max-h-[95vh] overflow-y-auto">
-//           <div className="flex justify-between items-center mb-6">
-//             <h2 className="text-xl font-semibold">{title}</h2>
-//             <button
-//               onClick={onClose}
-//               className="text-gray-500 hover:text-gray-700 cursor-pointer text-4xl"
-//             >
-//               ×
-//             </button>
-//           </div>
-
-//           <form onSubmit={formik.handleSubmit}>
-//             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-//               {/* Left Column - Basic Details and Pricing */}
-//               <div className="boxShadow p-5 rounded-md space-y-10 border-0">
-//                 {/* Basic Details */}
-//                 <div >
-//                   <h3 className="text-lg lato font-bold mb-4">Basic Details</h3>
-//                   <div className="flex flex-col gap-3">
-//                     {/* Product Name */}
-//                     <InputFields
-//                       label="Product Name"
-//                       placeholder="Enter Product Name"
-//                       type="text"
-//                       error={formik.errors.productName}
-//                       touched={formik.touched.productName}
-//                       {...formik.getFieldProps("productName")}
-//                     />
-//                     {/* Product Description */}
-//                     <InputFields
-//                       label="Product Description"
-//                       placeholder="Enter Product Description"
-//                       type="textarea"
-//                       rows={4}
-//                       error={formik.errors.productDescription}
-//                       touched={formik.touched.productDescription}
-//                       {...formik.getFieldProps("productDescription")}
-//                     />
-//                   </div>
-//                 </div>
-
-//                 {/* Pricing */}
-//                 <div>
-//                   <h3 className="text-lg lato font-bold mb-4">Pricing</h3>
-//                   <div className="flex flex-col gap-3">
-//                     {/* Product Price */}
-//                     <InputFields
-//                       label="Product Price"
-//                       placeholder="Enter Product Price"
-//                       type="number"
-//                       error={formik.errors.productPrice}
-//                       touched={formik.touched.productPrice}
-//                       {...formik.getFieldProps("productPrice")}
-//                     />
-//                     {/* Discounted Price */}
-//                     <InputFields
-//                       label="Discounted Price (Optional)"
-//                       placeholder="Enter Discounted Price"
-//                       type="number"
-//                       error={formik.errors.discountedPrice}
-//                       touched={formik.touched.discountedPrice}
-//                       {...formik.getFieldProps("discountedPrice")}
-//                     />
-//                     {/* Validity After Purchase */}
-//                     <InputFields
-//                       label="Validity After Purchase (Optional)"
-//                       placeholder="Enter Validity After Purchase"
-//                       type="text"
-//                       error={formik.errors.validityAfterPurchase}
-//                       touched={formik.touched.validityAfterPurchase}
-//                       {...formik.getFieldProps("validityAfterPurchase")}
-//                     />
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* Right Column - Upload Product Image */}
-//               <div className="boxShadow rounded-md p-5">
-//                 <h3 className="text-lg font-medium mb-4">Upload Product Image</h3>
-//                 <div className="space-y-4">
-//                   <div>
-//                     <label className="block text-sm font-medium text-gray-700 mb-2">
-//                       Product Image
-//                     </label>
-//                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center min-h-[200px] bg-gray-50">
-//                       {formik.values.productImage ? (
-//                         <img
-//                           src={URL.createObjectURL(formik.values.productImage)}
-//                           alt="Uploaded"
-//                           className="w-32 h-32 object-cover rounded-lg mb-4"
-//                         />
-//                       ) : (
-//                         <div className="flex flex-col items-center justify-center">
-//                           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-//                             <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-//                             </svg>
-//                           </div>
-//                           <span className="text-blue-500 text-sm font-medium">
-//                             Add Image
-//                           </span>
-//                         </div>
-//                       )}
-//                       <input
-//                         id="productImageUpload"
-//                         type="file"
-//                         accept="image/jpeg, image/png"
-//                         className="hidden"
-//                         onChange={(e) => {
-//                           const file = e.target.files[0];
-//                           formik.setFieldValue("productImage", file);
-//                           formik.setTouched({ productImage: true });
-//                         }}
-//                       />
-//                     </div>
-//                   </div>
-                  
-//                   <div className="flex justify-center space-x-4">
-//                     <button
-//                       type="button"
-//                       className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2"
-//                       onClick={() => {
-//                         const input = document.getElementById("productImageUpload");
-//                         input.click();
-//                       }}
-//                     >
-//                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-//                       </svg>
-//                       <span>Browse</span>
-//                     </button>
-//                     {formik.values.productImage && (
-//                       <button
-//                         type="button"
-//                         className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2"
-//                         onClick={() => {
-//                           formik.setFieldValue("productImage", null);
-//                           formik.setTouched({ productImage: false });
-//                         }}
-//                       >
-//                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-//                         </svg>
-//                         <span>Replace</span>
-//                       </button>
-//                     )}
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Publish Product Button */}
-//             <div className="flex justify-end mt-8">
-//               <button
-//                 type="submit"
-//                 className="px-8 py-3 bg-[#4755E5] text-white rounded-lg hover:bg-[#3a47d1] transition-colors font-medium"
-//               >
-//                 Publish Product
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default EditProductListing;
-
 import React, { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -299,10 +29,29 @@ const EditProductListing = ({
   const vendorOptions =
   categoriesApi?.data?.map((item) => ({
     label: item.name,
-    value: item.id, // or item.id if you want to use ID
+    value: item.id, // Use ID for form submission
+    name: item.name, // Keep name for conditional logic
   })) || [];
 
-console.log("formState",formState)
+  console.log("formState",formState)
+
+  // Helper function to get category name by ID
+  const getCategoryNameById = (categoryId) => {
+    const category = categoriesApi?.data?.find((item) => item.id === parseInt(categoryId));
+    return category ? category.name : "";
+  };
+
+  // Helper function to check if selected category should show type dropdown
+  const shouldShowTypeDropdown = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "Scored Practice Mock Test";
+  };
+
+  // Helper function to check if selected category should show validity field
+  const shouldShowValidityField = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "ape uni" || categoryName === "APE UNI";
+  };
 
   // Enhanced scroll prevention effect
   useEffect(() => {
@@ -344,7 +93,7 @@ console.log("formState",formState)
   const formik = useFormik({
     initialValues: {
       voucherName: formState?.name || formState?.voucherName || "", // Voucher Name
-      vendor: formState?.category || "", // Vendor
+      vendor: formState?.category || "", // Vendor (should be ID)
       description: formState?.description || "", // Description
       validity: formState?.validity || "", // Validity
       type: formState?.type || "", // Type
@@ -357,8 +106,16 @@ console.log("formState",formState)
       voucherName: Yup.string().required("Voucher Name is required"),
       vendor: Yup.string().required("Vendor is required"),
       description: Yup.string().required("Description is required"),
-      validity: Yup.string().required("Validity is required"),
-      type: Yup.string(), // Optional field
+      validity: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowValidityField(vendorId),
+        then: (schema) => schema.required("Validity is required"),
+        otherwise: (schema) => schema,
+      }),
+      type: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowTypeDropdown(vendorId),
+        then: (schema) => schema.required("Type is required"),
+        otherwise: (schema) => schema,
+      }),
       price: Yup.number()
         .typeError("Price must be a number")
         .positive("Price must be positive")
@@ -379,12 +136,19 @@ console.log("formState",formState)
     onSubmit: (values) => {
       const formData = new FormData();
       formData.append("name", values.voucherName);
-      formData.append("category", values.vendor);
+      formData.append("category", values.vendor); // This will be the category ID
       formData.append("price", values.price);
       formData.append("description", values.description);
-      formData.append("validity", values.validity);
-      formData.append("type", values.type);
-      // formData.append("status", values.status);
+      
+      // Only append validity if it should be shown for this category
+      if (shouldShowValidityField(values.vendor)) {
+        formData.append("validity", values.validity);
+      }
+      
+      // Only append type if it should be shown for this category
+      if (shouldShowTypeDropdown(values.vendor)) {
+        formData.append("type", values.type);
+      }
 
       // Add ID if editing (formState exists and has ID)
       if (formState?.id) {
@@ -396,14 +160,13 @@ console.log("formState",formState)
         formData.append("image", values.photo);
       }
 
-      const apiPath = formState?.id ? "admin/update-it-voucher/" : "admin/add-it-voucher/";
+      const apiPath = formState?.id ? "admin/add-it-voucher/" : "admin/add-it-voucher/";
       const successMessage = formState?.id ? "Voucher updated successfully!" : "Voucher created successfully!";
 
       mutation.mutate(
         {
           payload: formData,
-          path: "admin/add-it-voucher/",
-          
+          path: "admin/add-it-voucher/", // Use the correct path based on whether it's edit or create
         },
         {
           onSuccess: (data) => {
@@ -418,6 +181,18 @@ console.log("formState",formState)
       );
     },
   });
+
+  // Reset type and validity when vendor changes
+  useEffect(() => {
+    if (formik.values.vendor) {
+      if (!shouldShowTypeDropdown(formik.values.vendor)) {
+        formik.setFieldValue("type", "");
+      }
+      if (!shouldShowValidityField(formik.values.vendor)) {
+        formik.setFieldValue("validity", "");
+      }
+    }
+  }, [formik.values.vendor]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -441,6 +216,7 @@ console.log("formState",formState)
             </button>
           </div>
           <form onSubmit={formik.handleSubmit} className="">
+            
             {/* Voucher Name Field */}
             <InputFields
               label="Voucher Name"
@@ -450,10 +226,11 @@ console.log("formState",formState)
               touched={formik.touched.voucherName}
               {...formik.getFieldProps("voucherName")}
             />
+            
             {/* Vendor Dropdown */}
             <InputFields
-              label="Vendor"
-              placeholder="Select Vendor"
+              label="Category"
+              placeholder="Select Category"
               isSelect={true}
               options={vendorOptions}
               error={formik.errors.vendor}
@@ -471,32 +248,36 @@ console.log("formState",formState)
               {...formik.getFieldProps("description")}
             />
 
-            {/* Validity Field */}
-            <InputFields
-              label="Validity"
-              placeholder="Enter Validity"
-              type="text"
-              error={formik.errors.validity}
-              touched={formik.touched.validity}
-              {...formik.getFieldProps("validity")}
-            />
+            {/* Validity Field - Show only for ape uni or APE UNI */}
+            {shouldShowValidityField(formik.values.vendor) && (
+              <InputFields
+                label="Validity"
+                placeholder="Enter Validity"
+                type="text"
+                error={formik.errors.validity}
+                touched={formik.touched.validity}
+                {...formik.getFieldProps("validity")}
+              />
+            )}
 
-            {/* Type Dropdown */}
-            <InputFields
-              label="Score Test Mock Test"
-              placeholder="Select Type"
-              isSelect={true}
-              options={[
-                { value: "Type A", label: "Type A" },
-                { value: "Type B", label: "Type B" },
-                { value: "Type C", label: "Type C" },
-                { value: "Type D", label: "Type D" },
-                { value: "Type E", label: "Type E" },
-              ]}
-              error={formik.errors.type}
-              touched={formik.touched.type}
-              {...formik.getFieldProps("type")}
-            />
+            {/* Type Dropdown - Show only for Scored Practice Mock Test */}
+            {shouldShowTypeDropdown(formik.values.vendor) && (
+              <InputFields
+                label="Type"
+                placeholder="Select Type"
+                isSelect={true}
+                options={[
+                  { value: "Type A", label: "Type A" },
+                  { value: "Type B", label: "Type B" },
+                  { value: "Type C", label: "Type C" },
+                  { value: "Type D", label: "Type D" },
+                  { value: "Type E", label: "Type E" },
+                ]}
+                error={formik.errors.type}
+                touched={formik.touched.type}
+                {...formik.getFieldProps("type")}
+              />
+            )}
 
             {/* Price Field */}
             <InputFields
@@ -507,6 +288,7 @@ console.log("formState",formState)
               touched={formik.touched.price}
               {...formik.getFieldProps("price")}
             />
+            
             {/* Status Dropdown */}
             <InputFields
               label="Status"
@@ -520,6 +302,7 @@ console.log("formState",formState)
               touched={formik.touched.status}
               {...formik.getFieldProps("status")}
             />
+            
             {/* Upload Photo */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700">
@@ -608,14 +391,14 @@ console.log("formState",formState)
                 </p>
               )}
             </div>
+            
             {/* Buttons */}
             <div className="flex justify-end mt-4">
               <button
                 type="button"
                 onClick={onClose}
                 className="mr-2 px-4 py-2 text-gray-600 border border-[#A4A5AB33] rounded-full hover:text-gray-800 cursor-pointer"
-              
-                 disabled={mutation.isPending}
+                disabled={mutation.isPending}
               >
                 Cancel
               </button>
@@ -624,8 +407,7 @@ console.log("formState",formState)
                 className="px-8 py-2 bg-[#4755E5] text-white rounded-full cursor-pointer"
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ?"Update..." : "Update Product"}
-                
+                {mutation.isPending ? "Updating..." : "Update Product"}
               </button>
             </div>
           </form>

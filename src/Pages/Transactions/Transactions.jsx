@@ -3,11 +3,29 @@ import Table from "../../Components/ReusableTable/Table";
 import { edit, deleteimg } from '../../assets/index'; // Adjust path as needed
 import { MdKeyboardArrowRight } from "react-icons/md";
 
+import { fetchResults } from "../../Services/GetResults";
+
+import Loader from "../../Components/Loader/Loader"
+
+import FormatNumber from "../../Components/Formatter/Format";
+
 const Transactions = () => {
+  const {
+    data: ResultsApi,
+    isLoading,
+    error,
+  } = fetchResults("total-revenue", "/api/admin/total-revenue/");
+ 
+  const {
+    data: PayFastPaymentCount,
+    isLoading: PayFastPaymentLoading,
+    error: PayFastPaymentError,
+  } = fetchResults("payfast-payment-count", "/api/admin/total-payment-count/");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
   const [parentActiveTab, setParentActiveTab] = useState("all");
-  const [activeCategoryTab, setActiveCategoryTab] = useState(0); // New state for category tabs
+  const [activeCategoryTab, setActiveCategoryTab] = useState(0);
 
   const [formState, setFormState] = useState({
     productName: "",
@@ -17,6 +35,21 @@ const Transactions = () => {
     validityAfterPurchase: "",
     productImage: null,
   });
+
+  // Process PayFast Payment Count data
+  const rawStatusCounts = PayFastPaymentCount?.data?.status_counts || {};
+  
+  const filteredCards = Object.entries(rawStatusCounts)
+    .filter(([status]) => status === "PENDING" || status === "COMPLETED")
+    .map(([status, value]) => ({
+      status,
+      count: value.count,
+      total_amount: value.total_amount,
+    }));
+  
+  // Separate them
+  const completed = filteredCards.find(item => item.status === "COMPLETED") || { count: 0, total_amount: 0 };
+  const pending = filteredCards.find(item => item.status === "PENDING") || { count: 0, total_amount: 0 };
 
   // Add this handler
   const handleAddNewProduct = (row) => {
@@ -33,10 +66,7 @@ const Transactions = () => {
     { label: "Customer Name", accessor: "customerName" },
     { label: "Email/Phone Number", accessor: "emailPhone" },
     { label: "Payment Type", accessor: "paymentType" },
-    
     { label: "Status", accessor: "status" },
-    
-    
   ];
 
   const data1 = [
@@ -131,8 +161,9 @@ const Transactions = () => {
   };
 
   const allOrdersData = data1;
-  const completedData = data1.filter(order => order.status === "completed");
-  const pendingData = data1.filter(order => order.status === "pending");
+  // Fixed case sensitivity issue
+  const completedData = data1.filter(order => order.status.toLowerCase() === "completed");
+  const pendingData = data1.filter(order => order.status.toLowerCase() === "pending");
 
   const handleTabChange = (tabValue) => {
     setActiveTab(tabValue);
@@ -147,7 +178,7 @@ const Transactions = () => {
 
   const optionalButtons = [
     { label: `All order (${allOrdersData.length})`, value: "all" },
-    { label: "Completed", value: "completed" },
+    { label: `Completed (${completedData.length})`, value: "completed" },
     { label: `Pending (${pendingData.length})`, value: "pending" },
   ];
 
@@ -172,97 +203,119 @@ const Transactions = () => {
     // any other logic on click
   };
 
-
   return (
-    <div className="flex flex-col gap-2  w-full ">
+    <div className="flex flex-col gap-4 w-full">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div className="lato text-[#023337] text-lg font-bold">Transactions</div>
-
-        <div className="inline-flex bg-white border border-[#F0F1F3] p-2 rounded-md">
+        
+        {/* <div className="inline-flex bg-white border border-[#F0F1F3] p-2 rounded-md">
           {dateFilterButtons.map((button, index) => (
             <button
               key={index}
               onClick={() => onTabChange && onTabChange(button.value)}
               className={`px-3 py-1 text-sm lato font-medium rounded-md transition-all
-          ${
-            parentActiveTab === button.value
-              ? "bg-[#3651BF1A] text-black"
-              : "bg-transparent text-[#4B5563]"
-          }`}
+                ${
+                  parentActiveTab === button.value
+                    ? "bg-[#3651BF1A] text-black"
+                    : "bg-transparent text-[#4B5563]"
+                }`}
             >
               {button.label}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
-      {/* ------------------Stats Cards------------------ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-        {/* Total Orders */}
-        <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-lg font-bold mb-2 lato text-[#23272E]">
-                Total Revenue
-              </h2>
-              <p className="text-3xl font-bold lato text-[#23272E]">Rs.1,240</p>
-              <p className="text-sm text-gray-500 mt-1">Till Date</p>
-            </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
-          </div>
+      {/* Stats Cards */}
+      {isLoading && PayFastPaymentLoading ? (
+        <Loader />
+      ) : error && PayFastPaymentError ? (
+        <div className="flex justify-center text-red-400 items-center h-20">
+          Error Fetching Data
         </div>
-
-       
-
-        {/* Completed Orders */}
-        <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-lg font-bold mb-2 lato text-[#23272E]">
-                Total Orders
-              </h2>
-              <div className="flex items-center space-x-2 mb-1">
-                <p className="text-3xl font-bold lato text-[#23272E]">960</p>
-                <span className="text-sm text-green-600 font-medium">85%</span>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5">
+          {[
+            {
+              title: "Total Orders",
+              value: FormatNumber(ResultsApi?.data?.total_orders ?? 0),
+            },
+            {
+              title: "Total Revenue",
+              value: `Rs. ${FormatNumber(ResultsApi?.data?.total_revenue ?? 0)}`,
+            },
+          ].map((card, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-lg p-6 shadow-sm flex flex-col justify-between gap-2"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-gray-900 text-lg font-semibold">{card.title}</h3>
+                </div>
               </div>
-              <p className="text-sm text-gray-500">Last 7 days</p>
-            </div>
-            {/* <div className="flex items-center">
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div> */}
-          </div>
-        </div>
-
-        {/* Pending Orders */}
-        <div className="bg-white rounded-lg p-6 shadow-1dp-ambient relative">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-lg font-bold mb-2 lato text-[#23272E]">
-                Pending Orders
-              </h2>
-              <div className="flex items-center space-x-2 mb-1">
-                <p className="text-3xl font-bold lato text-[#23272E]">87</p>
-                <span className="text-sm text-red-600 font-medium">↓ 5%</span>
+              <div className="">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-1">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-4xl font-medium text-gray-900">
+                        {card.value}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-500">Last 7 days</p>
+              <div className="flex justify-end items-center">
+                <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
+                  Details
+                </button>
+              </div>
             </div>
-           
+          ))}
+ 
+          {/* PayFast Payment Status Card */}
+          <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col gap-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-gray-900 text-lg font-semibold">PayFast Payment</h3>
+              </div>
+            </div>
+
+            <div className="flex justify-between gap-6">
+              {/* Completed Block */}
+              <div className="flex flex-col gap-1 flex-1 border-r pr-4">
+                <div className="text-sm text-green-900">Completed</div>
+                <span className="text-2xl font-medium text-green-600">
+                  Rs.{FormatNumber(completed.total_amount.toFixed(2))}
+                </span>
+                <span className="text-green-700 text-sm font-medium">
+                  {completed.count} orders
+                </span>
+              </div>
+
+              {/* Pending Block */}
+              <div className="flex flex-col gap-1 flex-1 pl-4">
+                <div className="text-sm text-yellow-600">Pending</div>
+                <span className="text-2xl font-medium text-yellow-500">
+                  Rs.{FormatNumber(pending.total_amount.toFixed(2))}
+                </span>
+                <span className="text-yellow-700 text-sm font-medium">
+                  {pending.count} orders
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end items-center">
+              <button className="px-6 py-2 border border-blue-500 text-blue-500 rounded-full text-sm hover:bg-blue-50 transition-colors">
+                Details
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      
-      {/* ------------------Table------------------ */}
+      {/* Table */}
       <Table
         columns={columns}
         data={getCurrentData()}
@@ -277,8 +330,6 @@ const Transactions = () => {
         activeTab={activeTab}
         modal={false}
         modalTitle="Add New Product"
-        // status={toggle}
-        // toggleIcon={toggleIcon}
         isOpen="true"
         onAddNewProduct={handleAddNewProduct}
       />

@@ -198,7 +198,7 @@ const AlphaEditModal = ({
         <div className="bg-white p-5 rounded-lg w-[95%] lg:w-[55%] 2xl:w-[40%] shadow-2xl max-h-[95vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
-              {isEditMode ? `Edit ${title}` : title}
+              {isEditMode ? ` ${title}` : title}
             </h2>
             <button
               onClick={onClose}
@@ -363,7 +363,7 @@ const AlphaEditModal = ({
                     ? "Updating..."
                     : "Creating..."
                   : isEditMode
-                  ? "Update Inventory"
+                  ? "Update Alpha Pte Voucher"
                   : "Publish Deal"}
               </button>
             </div>

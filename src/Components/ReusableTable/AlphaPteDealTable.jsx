@@ -642,8 +642,8 @@ const AlphaPteDealTable = ({
                           </button>
                         )}
 
-                        {/* Show edit button only for bank transfer payments */}
-                        {actions.edit && 
+                        
+                        {/* { row.payment_approved || actions.edit && 
                           <button
                             onClick={() => {
                               onEdit(row); // Set the user for deletion
@@ -661,8 +661,9 @@ const AlphaPteDealTable = ({
                           </button>
                         }
 
-                        {/* Show delete button only for bank transfer payments */}
-                        {actions.delete && 
+                        {row.status || row.payment_approved? (
+                                <span className="text-gray-500">--</span>
+                              ) : actions.delete && 
                        
                           <button
                             onClick={() => {
@@ -679,7 +680,53 @@ const AlphaPteDealTable = ({
                           >
                             {icons.delete && icons.delete}
                           </button>
-                        }
+                        } */}
+
+                        {/* If status is COMPLETED or payment is approved, show "--" */}
+{row.status === "COMPLETED" || row.payment_approved ? (
+  <span className="text-gray-500">--</span>
+) : (
+  <>
+    {/* Edit button if allowed */}
+    {actions.edit && (
+      <button
+        onClick={() => {
+          onEdit(row);
+          setOpenModal(true);
+          if (editFalse) {
+            setVoucherStatus(true);
+          }
+          if (setIs_approve) {
+            setIs_approve(true);
+          }
+        }}
+        className="text-black text-lg hover:text-blue-700 cursor-pointer mt-1"
+      >
+        {icons.edit && icons.edit}
+      </button>
+    )}
+
+    {/* Delete button if allowed */}
+    {actions.delete && (
+      <button
+        onClick={() => {
+          setDeleteUser(row);
+          setDeleteModal(true);
+          if (editFalse) {
+            setVoucherStatus(false);
+          }
+          if (setIs_approve) {
+            setIs_approve(false);
+          }
+        }}
+        className="text-black hover:text-red-700 cursor-pointer mt-1"
+      >
+        {icons.delete && icons.delete}
+      </button>
+    )}
+  </>
+)}
+
 
                         {actions.viewicon && (
                           <button

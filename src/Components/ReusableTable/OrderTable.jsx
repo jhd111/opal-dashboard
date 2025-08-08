@@ -5,7 +5,7 @@ import { CgSortAz } from "react-icons/cg";
 import arrowDowncircle from "../../assets/Oval.png";
 import doc from "../../assets/Oval.png";
 
-import {plus,message} from "../../assets/index"
+import { plus, message } from "../../assets/index";
 
 import { Calendar, ChevronUp, Check } from "lucide-react";
 
@@ -75,7 +75,6 @@ const OrderTable = ({
   optionalButtons,
   onTabChange,
   activeTab,
-  
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -93,8 +92,12 @@ const OrderTable = ({
     if (tableContainer && topScroll && bottomScroll) {
       // Set the width of dummy content to match table's scroll width
       const scrollWidth = tableContainer.scrollWidth;
-      topScroll.querySelector(".scroll-content").style.width = `${scrollWidth}px`;
-      bottomScroll.querySelector(".scroll-content").style.width = `${scrollWidth}px`;
+      topScroll.querySelector(
+        ".scroll-content"
+      ).style.width = `${scrollWidth}px`;
+      bottomScroll.querySelector(
+        ".scroll-content"
+      ).style.width = `${scrollWidth}px`;
 
       // Function to sync scroll positions
       const syncScroll = (source, targets) => {
@@ -387,69 +390,64 @@ const OrderTable = ({
               <span className="lexend">{categoryTitle}</span>
             </button>
           )}
-          
+
           <div className="flex justify-between items-center gap-2">
-
-             {/* Filter Button */}
-             {filter &&
-             <div className="inline-block text-left z-50">
-              {/* Filter Button */}
-              <button
-                ref={buttonRef}
-                className="relative  cursor-pointer flex items-center p-1 bg-white border border-gray-200 text-gray-800 rounded-md hover:bg-gray-100 focus:outline-none "
-                onClick={toggleDropdown}
-              >
-                <CgSortAz className="w-8 h-8  text-[#4B5563]" />
-               
-              </button>
-
-              {/* Dropdown Menu */}
-              {isOpen && (
-                <div
-                  ref={dropdownRef}
-                  className="absolute z-50 w-36  rounded-md shadow-lg bg-white  right-6  mt-"
+            {/* Filter Button */}
+            {filter && (
+              <div className="inline-block text-left z-50">
+                {/* Filter Button */}
+                <button
+                  ref={buttonRef}
+                  className="relative  cursor-pointer flex items-center p-1 bg-white border border-gray-200 text-gray-800 rounded-md hover:bg-gray-100 focus:outline-none "
+                  onClick={toggleDropdown}
                 >
-                  <div className="flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 border-b">
-                    <span>Sort by</span>
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  <CgSortAz className="w-8 h-8  text-[#4B5563]" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isOpen && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute z-50 w-36  rounded-md shadow-lg bg-white  right-6  mt-"
+                  >
+                    <div className="flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 border-b">
+                      <span>Sort by</span>
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <div className="py-1">
+                      {filterOptions?.map((option, index) => (
+                        <button
+                          key={index}
+                          className={`flex items-center justify-between w-full px-4 py-2 text-left text-sm text-gray-700 ${
+                            selectedFilter === option ? "bg-blue-50" : ""
+                          }`}
+                          onClick={() => handleOptionClick(option)}
+                        >
+                          {option}
+                          {selectedFilter === option && (
+                            <Check className="w-4 h-4 text-blue-600" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="py-1">
-                    {filterOptions?.map((option, index) => (
-                      <button
-                        key={index}
-                        className={`flex items-center justify-between w-full px-4 py-2 text-left text-sm text-gray-700 ${
-                          selectedFilter === option ? "bg-blue-50" : ""
-                        }`}
-                        onClick={() => handleOptionClick(option)}
-                      >
-                        {option}
-                        {selectedFilter === option && (
-                          <Check className="w-4 h-4 text-blue-600" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-}
+                )}
+              </div>
+            )}
 
-          {modal && (
-            <button
-              type="button"
-              className="flex items-center text-sm space-x-1 px-4 py-2 bg-[#3651BF] border border-[#A4A5AB1A] text-white rounded-md cursor-pointer focus:outline-none"
-              onClick={() => onAddNewProduct?.()}
-            >
-              <span>
-                <img src={plus} alt="" className="w-6 h-6 text-white" />
-              </span>
-              <span className="lexend">{modalTitle}</span>
-            </button>
-          )}
-
-         
-            </div>
-
+            {modal && (
+              <button
+                type="button"
+                className="flex items-center text-sm space-x-1 px-4 py-2 bg-[#3651BF] border border-[#A4A5AB1A] text-white rounded-md cursor-pointer focus:outline-none"
+                onClick={() => onAddNewProduct?.()}
+              >
+                <span>
+                  <img src={plus} alt="" className="w-6 h-6 text-white" />
+                </span>
+                <span className="lexend">{modalTitle}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -463,193 +461,226 @@ const OrderTable = ({
         <div className="text-red-500 text-center">Error Fetching Data</div>
       ) : (
         <>
-         <div className="relative">
-    <div className="overflow-x-auto max-w-full ">
-      <table className="min-w-max w-full table-auto rounded-lg">
-            <thead >
-              <tr className="bg-[#3651BF1A] rounded-md" >
-                {columns.map((col, index) => (
-                  <th
-                    key={index}
-                    className={`${
-                      col.className || ""
-                    } w-auto px-4 py-2 lato font-bold text-[#023337] text-start lg:text-[12px] 2xl:text-[16px]`}
-                  >
-                    {col.label}
-                  </th>
-                ))}
-
-                {/* Conditionally render the Status column if needed */}
-                {status && (
-                  <th className="w-auto px-4 py-2 lato font-bold text-[#023337] text-center lg:text-[12px] 2xl:text-[16px]">
-                    Status
-                  </th>
-                )}
-
-                {/* Always render the Action column */}
-                { actions &&
-                (actions.edit || actions.delete || actions.viewDetails) && (
-                  <th className="w-auto px-4 py-2 lato font-bold text-[#023337] lg:text-[12px] 2xl:text-[16px] text-center">
-                    Action
-                  </th>
-                )
-}
-              </tr>
-            </thead>
-            <tbody>
-              {data && data?.length === 0 ? (
-                <tr className="text-red-500 text-center w-full mt-4 flex justify-center items-center">
-                  <td>No Record Found</td>
-                </tr>
-              ) : (
-                data.map((row, rowIndex) => (
-                  <tr
-                    key={rowIndex}
-                    className={` text-[#555F7E] font-normal inter lg:text-[13px] 2xl:text-lg  border-b border-[#D1D5DB]`}
-                  >
-                    {columns.map((col, colIndex) => (
-                      <td
-                        key={colIndex}
-                        className={`${col.className} px-4 py-2 cursor-pointer`}
+          <div className="relative">
+            <div className="overflow-x-auto max-w-full ">
+              <table className="min-w-max w-full table-auto rounded-lg">
+                <thead>
+                  <tr className="bg-[#3651BF1A] rounded-md">
+                    {columns.map((col, index) => (
+                      <th
+                        key={index}
+                        className={`${
+                          col.className || ""
+                        } w-auto px-4 py-2 lato font-bold text-[#023337] text-start lg:text-[12px] 2xl:text-[16px]`}
                       >
-                        {["email", "phone", "phone_number"].includes(col.accessor) ? (
-  <div className="group inline-flex items-center gap-2">
-    <span>{row[col.accessor]}</span>
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(row[col.accessor]);
-        toast.success(`${col.label || col.accessor} copied to clipboard`);
-      }}
-      className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-600 p-1"
-      title="Copy"
-    >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    </button>
-  </div>
-)
-                     :    
-                        col.accessor === "screenshot" ? (
-                          row[col.accessor] ? (
-                            <Link
-                              to="#"
-                            //   state={{ row }}
-                              // target="_blank"
-                              // rel="noopener noreferrer"
-                            >
-                              <img
-                                src={row.payment_image}
-                                alt="PDF"
-                                className="text-blue-500 cursor-pointer ml-2 w-10"
-                                onClick={() => setPreviewImage(row.payment_image)}
-                              />
-                            </Link>
-                          ) : (
-                            <span className="text-red-400">Nill</span>
-                          )
-                        ) : col.accessor === "name" ? (
-                          // Special case: render image + name
-                          <div className="flex items-center space-x-3">
-                            {row.name?.image && (
-                              <img
-                                src={row.name.image}
-                                alt={row.name.name || "User"}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            )}
-                            <span>{row.name?.name || row[col.accessor]}</span>
-                          </div>
-                        ) : col.accessor === "status" ?
-                         (
-                          // Conditional styling based on the status value
-                          <span
-                            className={`px-4 py-1 rounded-sm font-normal lexend ${
-                              row[col.accessor] === "Completed COMPLETED" ||
-                              row[col.accessor] === "COMPLETED" ||
-                              row[col.accessor] === "In Stock" ||
-                              row[col.accessor] === "APPROVED"
-                                ? "text-[#3FC28A] bg-[#3FC28A1A]"
-                                : row[col.accessor] === "Pending" ||
-                                  row[col.accessor] === "PENDING"
-                                ? "text-[#EFBE12] bg-[#EFBE121A]"
-                                : row[col.accessor] === "Cancel" ||
-                                  row[col.accessor] === "Out Of Stock"
-                                ? "text-red-600 bg-red-100"
-                                : "text-gray-600 bg-gray-100"
-                            }`}
-                          >
-                            {row[col.accessor]}
-                          </span>
-                        ) : (
-                          row[col.accessor]
-                        )
-                        
-                        }
-                      </td>
+                        {col.label}
+                      </th>
                     ))}
 
-                    {/* FIXED: Conditionally render the status toggle column */}
+                    {/* Conditionally render the Status column if needed */}
                     {status && (
-                      <td className="px-4 py-2 flex items-center justify-center space-x-2 mt-1">
-                        {/* Check if toggleIcon.status is a function */}
-                        {typeof toggleIcon?.status === 'function' ? (
-                          toggleIcon.status(row)
-                        ) : (
-                          // Fallback: Create a proper toggle switch
-                          <div className="flex items-center space-x-2">
-                            <label className="inline-flex items-center cursor-pointer">
-                              <input 
-                                type="checkbox" 
-                                className="sr-only peer" 
-                                checked={row.status === true || row.status === "true" || row.status === 1}
-                                onChange={() => onToggle(row.status, row.id)}
-                              />
-                              <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
-                            </label>
-                            <span className="text-sm text-gray-600">
-                              {(row.status === true || row.status === "true" || row.status === 1) ? "Active" : "Inactive"}
-                            </span>
-                          </div>
-                        )}
-                      </td>
+                      <th className="w-auto px-4 py-2 lato font-bold text-[#023337] text-center lg:text-[12px] 2xl:text-[16px]">
+                        Status
+                      </th>
                     )}
 
-                    {/* Render action buttons for Edit, Delete, View Details */}
-                    {actions && (actions.viewDetails ||
-                      actions.edit ||
-                      actions.delete ||
-                      actions.viewicon) && (
-                      <td className="px-4 py-2 text-center space-x-2">
-                        {actions.viewDetails && (
-                          <button
-                            onClick={() => onViewDetails(row)}
-                            className="cursor-pointer  px-3 py-1 border border-[#EDEDEE] rounded-lg text-black hover:bg-gray-100"
+                    {/* Always render the Action column */}
+                    {actions &&
+                      (actions.edit ||
+                        actions.delete ||
+                        actions.viewDetails) && (
+                        <th className="w-auto px-4 py-2 lato font-bold text-[#023337] lg:text-[12px] 2xl:text-[16px] text-center">
+                          Action
+                        </th>
+                      )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data && data?.length === 0 ? (
+                    <tr className="text-red-500 text-center w-full mt-4 flex justify-center items-center">
+                      <td>No Record Found</td>
+                    </tr>
+                  ) : (
+                    data.map((row, rowIndex) => (
+                      <tr
+                        key={rowIndex}
+                        className={` text-[#555F7E] font-normal inter lg:text-[13px] 2xl:text-lg  border-b border-[#D1D5DB]`}
+                      >
+                        {columns.map((col, colIndex) => (
+                          <td
+                            key={colIndex}
+                            className={`${col.className} px-4 py-2 cursor-pointer`}
                           >
-                            <span className="flex items-center justify-center">
-                              View Details {icons.viewDetails}
-                            </span>
-                          </button>
+                            {["email", "phone", "phone_number"].includes(
+                              col.accessor
+                            ) ? (
+                              <div className="group inline-flex items-center gap-2">
+                                <span>{row[col.accessor]}</span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(
+                                      row[col.accessor]
+                                    );
+                                    toast.success(
+                                      `${
+                                        col.label || col.accessor
+                                      } copied to clipboard`
+                                    );
+                                  }}
+                                  className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-blue-600 p-1"
+                                  title="Copy"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            ) : col.accessor === "screenshot" ? (
+                              row[col.accessor] ? (
+                                <Link
+                                  to="#"
+                                  //   state={{ row }}
+                                  // target="_blank"
+                                  // rel="noopener noreferrer"
+                                >
+                                  <img
+                                    src={row.payment_image}
+                                    alt="PDF"
+                                    className="text-blue-500 cursor-pointer ml-2 w-10"
+                                    onClick={() =>
+                                      setPreviewImage(row.payment_image)
+                                    }
+                                  />
+                                </Link>
+                              ) : (
+                                <span className="text-red-400">Nill</span>
+                              )
+                            ) : col.accessor === "name" ? (
+                              // Special case: render image + name
+                              <div className="flex items-center space-x-3">
+                                {row.name?.image && (
+                                  <img
+                                    src={row.name.image}
+                                    alt={row.name.name || "User"}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                  />
+                                )}
+                                <span>
+                                  {row.name?.name || row[col.accessor]}
+                                </span>
+                              </div>
+                            ) : col.accessor === "status" ? (
+                              // Conditional styling based on the status value
+                              <span
+                                className={`px-4 py-1 rounded-sm font-normal lexend ${
+                                  row[col.accessor] === "Completed COMPLETED" ||
+                                  row[col.accessor] === "COMPLETED" ||
+                                  row[col.accessor] === "In Stock" ||
+                                  row[col.accessor] === "APPROVED"
+                                    ? "text-[#3FC28A] bg-[#3FC28A1A]"
+                                    : row[col.accessor] === "Pending" ||
+                                      row[col.accessor] === "PENDING"
+                                    ? "text-[#EFBE12] bg-[#EFBE121A]"
+                                    : row[col.accessor] === "Cancel" ||
+                                      row[col.accessor] === "Out Of Stock"
+                                    ? "text-red-600 bg-red-100"
+                                    : "text-gray-600 bg-gray-100"
+                                }`}
+                              >
+                                {row[col.accessor]}
+                              </span>
+                            ) : (
+                              row[col.accessor]
+                            )}
+                          </td>
+                        ))}
+
+                        {/* FIXED: Conditionally render the status toggle column */}
+                        {status && (
+                          <td className="px-4 py-2 flex items-center justify-center space-x-2 mt-1">
+                            {/* Check if toggleIcon.status is a function */}
+                            {typeof toggleIcon?.status === "function" ? (
+                              toggleIcon.status(row)
+                            ) : (
+                              // Fallback: Create a proper toggle switch
+                              <div className="flex items-center space-x-2">
+                                <label className="inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={
+                                      row.status === true ||
+                                      row.status === "true" ||
+                                      row.status === 1
+                                    }
+                                    onChange={() =>
+                                      onToggle(row.status, row.id)
+                                    }
+                                  />
+                                  <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
+                                </label>
+                                <span className="text-sm text-gray-600">
+                                  {row.status === true ||
+                                  row.status === "true" ||
+                                  row.status === 1
+                                    ? "Active"
+                                    : "Inactive"}
+                                </span>
+                              </div>
+                            )}
+                          </td>
                         )}
 
-                        {/* Show edit button only for bank transfer payments */}
-                        {actions.edit && (row.paymentType === 'bank_transfer' || row.paymentType === 'bank transfer') && (
-                          <button
-                            onClick={() => {
-                              onEdit(row); // Set the user for deletion
-                              setOpenModal(true); // Close the modal
-                              if (setIs_approve) {
-                                setIs_approve(true); // Update approval status if the function exists
-                              }
-                            }}
-                            className="text-black text-lg hover:text-blue-700 cursor-pointer mt-1"
-                          >
-                            {icons.edit && icons.edit}
-                          </button>
-                        )}
+                        {/* Render action buttons for Edit, Delete, View Details */}
+                        {actions &&
+                          (actions.viewDetails ||
+                            actions.edit ||
+                            actions.delete ||
+                            actions.viewicon) && (
+                            <td className="px-4 py-2 text-center space-x-2">
+                              {actions.viewDetails && (
+                                <button
+                                  onClick={() => onViewDetails(row)}
+                                  className="cursor-pointer  px-3 py-1 border border-[#EDEDEE] rounded-lg text-black hover:bg-gray-100"
+                                >
+                                  <span className="flex items-center justify-center">
+                                    View Details {icons.viewDetails}
+                                  </span>
+                                </button>
+                              )}
 
-                        {/* Show delete button only for bank transfer payments */}
-                        {actions.delete && 
+                              {/* Show edit button only for bank transfer payments */}
+
+                              {row.payment_approved ||
+                                (actions.edit &&
+                                  (row.paymentType === "bank_transfer" ||
+                                    row.paymentType === "bank transfer") && (
+                                    <button
+                                      onClick={() => {
+                                        onEdit(row); // Set the user for deletion
+                                        setOpenModal(true); // Close the modal
+                                        if (setIs_approve) {
+                                          setIs_approve(true); // Update approval status if the function exists
+                                        }
+                                      }}
+                                      className="text-black text-lg hover:text-blue-700 cursor-pointer mt-1"
+                                    >
+                                      {icons.edit && icons.edit}
+                                    </button>
+                                  ))}
+
+                              {/* Show delete button only for bank transfer payments */}
+                              {/* {actions.delete && 
                         (row.paymentType === 'bank_transfer' || row.paymentType === 'bank transfer') && (
                           <button
                             onClick={() => {
@@ -663,25 +694,47 @@ const OrderTable = ({
                           >
                             {icons.delete && icons.delete}
                           </button>
-                        )}
+                        )} */}
+                              {row.payment_approved ? (
+                                <span className="text-gray-500">--</span>
+                              ) : (
+                                actions.delete &&
+                                (row.paymentType === "bank_transfer" ||
+                                row.paymentType === "bank transfer" ? (
+                                  <button
+                                    onClick={() => {
+                                      setDeleteUser(row);
+                                      setDeleteModal(true);
+                                      if (setIs_approve) {
+                                        setIs_approve(false);
+                                      }
+                                    }}
+                                    className="text-black hover:text-red-700 cursor-pointer mt-1"
+                                  >
+                                    {icons.delete && icons.delete}
+                                  </button>
+                                ) : (
+                                  <span className="text-gray-500">--</span>
+                                ))
+                              )}
 
-                        {actions.viewicon && (
-                          <button
-                            onClick={() => onViewIconClick(row)}
-                            className="text-black text-lg hover:text-blue-700 cursor-pointer mt-2"
-                          >
-                            {icons.viewicon && icons.viewicon}
-                          </button>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-</div>
-</div>
+                              {actions.viewicon && (
+                                <button
+                                  onClick={() => onViewIconClick(row)}
+                                  className="text-black text-lg hover:text-blue-700 cursor-pointer mt-2"
+                                >
+                                  {icons.viewicon && icons.viewicon}
+                                </button>
+                              )}
+                            </td>
+                          )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
           {dataLength > 5 && (
             <Pagination
               currentPage={currentPage}
@@ -695,28 +748,26 @@ const OrderTable = ({
         </>
       )}
       {previewImage && (
-  <div className="fixed inset-0 flex items-center backdrop-blur-md bg-gray-800/30 justify-center z-50">
-        <div className="bg-white p-5 rounded-lg w-[95%] lg:w-[55%] 2xl:w-[40%] shadow-2xl max-h-[95vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-       
-      <button
-              onClick={() => setPreviewImage(null)}
-              className="text-gray-500 hover:text-gray-700 cursor-pointer text-4xl"
-            >
-              ×
-            </button>
-
-          </div>
-          <div className="border border-[#A4A5AB33] flex justify-center rounded-md p-4">
-          <img src={previewImage} alt="Preview" 
-          className="max-w-full max-h-[80vh] object-contain" />
-
+        <div className="fixed inset-0 flex items-center backdrop-blur-md bg-gray-800/30 justify-center z-50">
+          <div className="bg-white p-5 rounded-lg w-[95%] lg:w-[55%] 2xl:w-[40%] shadow-2xl max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="text-gray-500 hover:text-gray-700 cursor-pointer text-4xl"
+              >
+                ×
+              </button>
             </div>
-     
-    </div>
-  </div>
-)}
-
+            <div className="border border-[#A4A5AB33] flex justify-center rounded-md p-4">
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

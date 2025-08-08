@@ -25,6 +25,7 @@ import { useEffect } from 'react';
 import Inventory from './Pages/Inventory/Inventory';
 import AlphaPte from './Pages/Orders/AlphaPte';
 import Alpha from './Pages/Alpa/Alpha';
+import Category from './Pages/Category/Category';
 const queryClient = new QueryClient();
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -68,6 +69,7 @@ function App() {
           <Route path="/dashboard/admin-profile" element={<ProfileUpdate/>}/>
           <Route path='/dashboard/inventory' element={<Inventory/>}/>
           <Route path='/dashboard/alpha' element={<Alpha/>}/>
+          <Route path='/dashboard/category' element={<Category/>} />
           </Route>
       </Routes>
     </Router>

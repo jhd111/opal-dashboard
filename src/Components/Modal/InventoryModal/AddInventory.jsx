@@ -202,7 +202,7 @@ const AddInventory = ({
                 type="submit"
                 className="px-8 py-2 bg-[#4755E5] text-white rounded-full cursor-pointer"
               >
-                Publish Deal
+                Add Inventory
               </button>
             </div>
           </form>
