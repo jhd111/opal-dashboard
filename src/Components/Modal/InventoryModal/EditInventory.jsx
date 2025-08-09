@@ -380,14 +380,46 @@ const AddInventory = ({
               />
 
               {/* Voucher Files Text Field */}
-              <InputFields
+              {/* <InputFields
                 label="Voucher Files"
                 placeholder="Enter Voucher Files"
                 type="text"
                 error={formik.errors.voucher_files}
                 touched={formik.touched.voucher_files}
                 {...formik.getFieldProps("voucher_files")}
-              />
+              /> */}
+
+<div className="relative w-full">
+  {/* Label */}
+  <label
+    htmlFor="voucher_files"
+    className="absolute -top-2 left-3 bg-white px-1 text-sm text-gray-600"
+  >
+    Voucher Files
+  </label>
+
+  {/* Textarea */}
+  <textarea
+    id="voucher_files"
+    className={`border p-2 w-full rounded outline-none mb-2 ${
+      formik.touched.voucher_files && formik.errors.voucher_files
+        ? "border-red-500"
+        : "border-gray-300"
+    }`}
+    placeholder="Enter Voucher Files"
+    value={formik.values.voucher_files}
+    onChange={(e) => {
+      let formattedValue = e.target.value.replace(/,\s*/g, ",\n");
+      formik.setFieldValue("voucher_files", formattedValue);
+    }}
+  />
+
+  {/* Error message */}
+  {formik.touched.voucher_files && formik.errors.voucher_files && (
+    <div className="text-red-500 text-xs mb-3">{formik.errors.voucher_files}</div>
+  )}
+</div>
+
 
               {/* Expiry Date Text Field */}
               <InputFields

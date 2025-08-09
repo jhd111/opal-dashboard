@@ -80,6 +80,9 @@ function Navbar({ onMenuClick }) {
       "/dashboard/paymentinformation": "Payments",
       "/dashboard/admin-profile": "Admin Profile",
       "/dashboard/testingservices": "Testing Services",
+      "/dashboard/category":"Category",
+      "/dashboard/alpha":"Alfa Pte",
+      "/dashboard/inventory":"Inventory"
     };
 
     return pathMap[location.pathname] || "Dashboard";

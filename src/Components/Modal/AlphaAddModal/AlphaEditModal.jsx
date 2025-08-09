@@ -243,7 +243,7 @@ const AlphaEditModal = ({
               {/* Voucher Files Field */}
               <InputFields
                 label="Validity"
-                placeholder="Enter Validity"
+                placeholder="Enter validity"
                 type="text"
                 error={formik.errors.expiry_date}
                 touched={formik.touched.expiry_date}
@@ -363,8 +363,8 @@ const AlphaEditModal = ({
                     ? "Updating..."
                     : "Creating..."
                   : isEditMode
-                  ? "Update Alpha Pte Voucher"
-                  : "Publish Deal"}
+                  ? "Update Alfa Pte Voucher"
+                  : "Updating"}
               </button>
             </div>
           </form>

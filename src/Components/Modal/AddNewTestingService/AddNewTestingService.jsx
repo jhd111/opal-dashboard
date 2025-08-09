@@ -114,7 +114,7 @@ const AddNewTestingService = ({
             {/* Name Field */}
             <InputFields
               label={nameLabel}
-              placeholder="Enter Student Name"
+              placeholder="Enter testing service"
               type="text"
               error={formik.errors.name}
               touched={formik.touched.name}

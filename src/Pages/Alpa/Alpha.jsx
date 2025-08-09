@@ -226,7 +226,7 @@ const handleToggleStatus = (currentStatus, id) => {
     <div className=" flex flex-col gap-2">
       <div className="flex justify-between items-center">
         <div className="lato text-[#023337] text-lg font-bold">
-          Alpha Pte
+          Alfa Pte
         </div>
       </div>
 
@@ -244,7 +244,7 @@ const handleToggleStatus = (currentStatus, id) => {
         // onTabChange={handleTabChange}
         // activeTab={activeTab}
         modal={true}
-        modalTitle="Add Alpha Pte Voucher"
+        modalTitle="Add Alfa Pte Voucher"
         status={toggle}
         toggleIcon={toggleIcon}
         isOpen="true"
@@ -264,7 +264,7 @@ const handleToggleStatus = (currentStatus, id) => {
       <AddAlpha
         isOpen={isTestingServiceModalOpen}
         onClose={() => setTestingServiceModalOpen(false)}
-        title="Add Alpha Pte Voucher"
+        title="Add Alfa Pte Voucher"
         nameLabel="Exam Name"
         formState={formState}
         setFormState={setFormState}
@@ -273,7 +273,7 @@ const handleToggleStatus = (currentStatus, id) => {
       <AlphaEditModal
         isOpen={isEditTestingServiceModalOpen}
         onClose={() => setEditTestingServiceModalOpen(false)}
-        title="Update Alpha Pte Voucher"
+        title="Update Alfa Pte Voucher"
         nameLabel="Exam Name"
         formState={formState}
         setFormState={setFormState}

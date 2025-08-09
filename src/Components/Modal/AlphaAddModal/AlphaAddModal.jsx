@@ -180,7 +180,7 @@ const AddAlpha = ({
               {/* Expiry Date Field */}
               <InputFields
                 label="Validty"
-                placeholder="Enter Expiry Date"
+                placeholder="Enter validty"
                 type="text"
                 error={formik.errors.expiry_date}
                 touched={formik.touched.expiry_date}
@@ -305,7 +305,7 @@ const AddAlpha = ({
                 disabled={formik.isSubmitting}
                 className="px-8 py-2 bg-[#4755E5] text-white rounded-full hover:bg-[#3d4ed8] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {formik.isSubmitting ? "Adding..." : "Add Alpha Pte Voucher"}
+                {formik.isSubmitting ? "Adding..." : "Add Alfa Pte Voucher"}
               </button>
             </div>
           </form>

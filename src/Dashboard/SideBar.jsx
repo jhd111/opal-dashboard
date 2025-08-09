@@ -243,7 +243,7 @@ function SideBar({ isOpen, setIsOpen }) {
                 }`}
               >
                 <img src={productlist} alt="" className="w-5 h-5" />
-                <span>Alpha Pte</span>
+                <span>Alfa Pte</span>
               </div>
 
               <div
