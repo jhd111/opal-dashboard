@@ -41,6 +41,14 @@ const AddInventory = ({
     { label: "Type E", value: "Type E" },
   ];
 
+  // Function to check if Type dropdown should be shown
+  const shouldShowTypeDropdown = (productName) => {
+    const showTypeProducts = ['score', 'practice', 'mock test', 'mock', 'test'];
+    return showTypeProducts.some(keyword => 
+      productName.toLowerCase().includes(keyword.toLowerCase())
+    );
+  };
+
   // Enhanced scroll prevention effect
   useEffect(() => {
     if (isOpen) {
@@ -120,6 +128,13 @@ const AddInventory = ({
     },
   });
 
+  // Reset type field when product changes and type dropdown should not be shown
+  useEffect(() => {
+    if (formik.values.product_name && !shouldShowTypeDropdown(formik.values.product_name)) {
+      formik.setFieldValue("type", "");
+    }
+  }, [formik.values.product_name]);
+
   useEffect(() => {
     if (!isOpen) {
       formik.resetForm();
@@ -156,48 +171,7 @@ const AddInventory = ({
                 {...formik.getFieldProps("product_name")}
               />
 
-              {/* Voucher Files Text Field */}
-              {/* <InputFields
-                label="Voucher Files"
-                placeholder="Enter Voucher Files"
-                type="text"
-                error={formik.errors.voucher_files}
-                touched={formik.touched.voucher_files}
-                {...formik.getFieldProps("voucher_files")}
-              /> */}
- <div className="relative w-full">
-  {/* Label */}
-  <label
-    htmlFor="voucher_files"
-    className="absolute -top-2 left-3 bg-white px-1 text-sm text-gray-600"
-  >
-    Voucher Files
-  </label>
-
-  {/* Textarea */}
-  <textarea
-    id="voucher_files"
-    className={`border p-2 w-full rounded outline-none mb-2 ${
-      formik.touched.voucher_files && formik.errors.voucher_files
-        ? "border-red-500"
-        : "border-gray-300"
-    }`}
-    placeholder="Enter Voucher Files"
-    value={formik.values.voucher_files}
-    onChange={(e) => {
-      let formattedValue = e.target.value.replace(/,\s*/g, ",\n");
-      formik.setFieldValue("voucher_files", formattedValue);
-    }}
-  />
-
-  {/* Error message */}
-  {formik.touched.voucher_files && formik.errors.voucher_files && (
-    <div className="text-red-500 text-xs mb-3">{formik.errors.voucher_files}</div>
-  )}
-</div>
-
-
-
+            
 
               {/* Expiry Date Text Field */}
               <InputFields
@@ -209,16 +183,50 @@ const AddInventory = ({
                 {...formik.getFieldProps("expiry_date")}
               />
 
-              {/* Type Dropdown (Not Compulsory) */}
-              <InputFields
-                label="Type (Optional)"
-                placeholder="Select Type"
-                isSelect={true}
-                options={TypeOptions}
-                error={formik.errors.type}
-                touched={formik.touched.type}
-                {...formik.getFieldProps("type")}
-              />
+  {/* Voucher Files Text Field */}
+  <div className="relative w-full">
+                {/* Label */}
+                <label
+                  htmlFor="voucher_files"
+                  className="absolute -top-2 left-3 bg-white px-1 text-sm text-gray-600"
+                >
+                  Voucher Files
+                </label>
+
+                {/* Textarea */}
+                <textarea
+                  id="voucher_files"
+                  rows={10}
+                  className={`border p-2 w-full rounded outline-none mb-2 ${
+                    formik.touched.voucher_files && formik.errors.voucher_files
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  }`}
+                  placeholder="Enter Voucher Files"
+                  value={formik.values.voucher_files}
+                  onChange={(e) => {
+                    let formattedValue = e.target.value.replace(/,\s*/g, ",\n");
+                    formik.setFieldValue("voucher_files", formattedValue);
+                  }}
+                />
+
+                {/* Error message */}
+                {formik.touched.voucher_files && formik.errors.voucher_files && (
+                  <div className="text-red-500 text-xs mb-3">{formik.errors.voucher_files}</div>
+                )}
+              </div>
+              {/* Conditionally show Type Dropdown */}
+              {formik.values.product_name && shouldShowTypeDropdown(formik.values.product_name) && (
+                <InputFields
+                  label="Type"
+                  placeholder="Select Type"
+                  isSelect={true}
+                  options={TypeOptions}
+                  error={formik.errors.type}
+                  touched={formik.touched.type}
+                  {...formik.getFieldProps("type")}
+                />
+              )}
 
             </div>
 

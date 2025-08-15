@@ -98,8 +98,10 @@ const Deals = ({
       image_2: null,
       image_3: null,
       image_4: null,
-      // status: "",
+      status: "",
+      include_spmt:false,
       isPopular: false,
+
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
@@ -189,6 +191,8 @@ formData.append("products", (values.products || []).join(","));
 
 // Always treat key_features as array and join with comma
 formData.append("key_features", (keyFeatures || []).join(","));
+formData.append("status",values.status)
+formData.append("include_spmt",values.include_spmt)
 
 // Image fields
 if (values.main_image) formData.append("main_image", values.main_image);
@@ -337,6 +341,20 @@ if (values.image_4) formData.append("image_4", values.image_4);
   )}
 </div>
 
+ {/* Include include_spmt Checkbox */}
+ <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formik.values.include_spmt}
+                    onChange={(e) =>
+                      formik.setFieldValue("include_spmt", e.target.checked)
+                    }
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Include SMPT</span>
+                </label>
+              </div>
               {/* Alpha PTE Field */}
               <InputFields
                 label="Alpha PTE"
@@ -369,18 +387,18 @@ if (values.image_4) formData.append("image_4", values.image_4);
               />
 
               {/* Status Dropdown */}
-              {/* <InputFields
+              <InputFields
                 label="Status"
                 placeholder="Select status"
                 isSelect={true}
                 options={[
-                  { value: "Active", label: "Active" },
-                  { value: "Inactive", label: "Inactive" },
+                  { value: "true", label: "Active" },
+                  { value: "false", label: "Inactive" },
                 ]}
                 error={formik.errors.status}
                 touched={formik.touched.status}
                 {...formik.getFieldProps("status")}
-              /> */}
+              />
 
               {/* Key Features Field */}
               <div className="mt-4">

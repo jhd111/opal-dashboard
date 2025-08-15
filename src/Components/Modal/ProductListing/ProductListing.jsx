@@ -136,6 +136,7 @@ const AddVoucher = ({
       formData.append("category", values.vendor);
       formData.append("price", values.price);
       formData.append("description", values.description);
+      formData.append("status",values.status)
       
       // Only append validity if it should be shown for this category
       if (shouldShowValidityField(values.vendor)) {

@@ -67,6 +67,7 @@ const EditVendor = ({
       name: formState?.name || '',
       // status: String(formState?.is_it_voucher ?? ''),
       photo: formState?.voucher_image || null,
+      description:formState?.description
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
@@ -97,6 +98,10 @@ const EditVendor = ({
       // Only append image if a new file is selected (File object)
       if (!category && values.photo && values.photo instanceof File) {
         formData.append("voucher_image", values.photo); // Changed from voucher_image to image
+      }
+      if (category && values.description)
+      {
+         formData.append('description',values.description)
       }
 
       // For edit mode, you need to add an ID field to identify which record to update
@@ -173,6 +178,18 @@ const EditVendor = ({
             touched={formik.touched.name}
             {...formik.getFieldProps("name")}
           />
+
+          {/* description Field */}
+          {category &&
+             <InputFields
+              label="description"
+              placeholder="Enter description"
+              type="text"
+              error={formik.errors.description}
+              touched={formik.touched.description}
+              {...formik.getFieldProps("description")}
+            />
+             }
 
           {/* Status Dropdown */}
           {/* <InputFields

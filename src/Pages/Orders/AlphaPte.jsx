@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Table from "../../Components/ReusableTable/Table";
-import { edit, deleteimg } from "../../assets/index"; // Adjust path as needed
+import { edit, deleteimg,alfa } from "../../assets/index"; // Adjust path as needed
 import { MdKeyboardArrowRight } from "react-icons/md";
 
 import { fetchResults } from "../../Services/GetResults";
@@ -39,8 +39,12 @@ const AlphaPte = () => {
     );
 
     const mutation = AddResultMutation(["aplpha-pte-voucher-listings"]);
+    const filterMutation = AddResultMutation(); // New mutation for filtering
     const queryClient = useQueryClient();
 
+    const filterOptions = ["Show All", "Debit Credit", "Bank Transfer"];
+    const [selectedFilter, setSelectedFilter] = useState("Show All");
+    const [filteredData, setFilteredData] = useState(null); // Store filtered data
   const [transformedData1, setTransformedData1] = useState({
     "Table Data1": [],
   });
@@ -66,7 +70,15 @@ const AlphaPte = () => {
 
   // Transform function for fetch API response (array of payments)
   const transformFetchApiResponse = (apiResponse, currentPage, pageSize) => {
-    const data = apiResponse?.payments || [];
+    let data = [];
+    
+    if (Array.isArray(apiResponse)) {
+      // Filter API returns direct array
+      data = apiResponse;
+    } else if (apiResponse?.payments) {
+      // Original API returns object with payments property
+      data = apiResponse.payments;
+    }
 
     return data
       .filter((item) => item.order_id && item.product_name) // Filter out entries with missing order_id or product_name
@@ -178,29 +190,36 @@ const AlphaPte = () => {
 
   // Effect to handle fetch results (when no search or search is cleared)
   useEffect(() => {
-    if (!debouncedSearchTable1 && ResultsApi?.data) {
-      const transformed = transformFetchApiResponse(
-        ResultsApi.data,
-        currentPage,
-        10
-      );
-      setTransformedData1({ "Table Data1": transformed });
-    }
-  }, [ResultsApi, currentPage, debouncedSearchTable1]);
-
-  // Effect to reset to original data when search is cleared
-  useEffect(() => {
-    if (debouncedSearchTable1 === "") {
-      if (ResultsApi?.data) {
+    if (!debouncedSearchTable1) {
+      // If we have filtered data, use it; otherwise use original data
+      const dataToUse = filteredData || ResultsApi?.data;
+      
+      if (dataToUse) {
         const transformed = transformFetchApiResponse(
-          ResultsApi.data,
+          dataToUse,
           currentPage,
           10
         );
         setTransformedData1({ "Table Data1": transformed });
       }
     }
-  }, [debouncedSearchTable1, ResultsApi, currentPage]);
+  }, [ResultsApi, filteredData, currentPage, debouncedSearchTable1]);
+
+  // Effect to reset to original data when search is cleared
+  useEffect(() => {
+    if (debouncedSearchTable1 === "") {
+      const dataToUse = filteredData || ResultsApi?.data;
+      
+      if (dataToUse) {
+        const transformed = transformFetchApiResponse(
+          dataToUse,
+          currentPage,
+          10
+        );
+        setTransformedData1({ "Table Data1": transformed });
+      }
+    }
+  }, [debouncedSearchTable1, ResultsApi, filteredData, currentPage]);
 
   // const toggle = { toggle: true };
 
@@ -282,8 +301,42 @@ const AlphaPte = () => {
           toast.success("Approval updated successfully!");
           setShowModal(false);
           setFormState(null);
-           // ✅ Refetch the voucher list to show updated status
-      queryClient.invalidateQueries(["aplpha-pte-voucher-listings"]);
+          // ✅ Refetch the voucher list to show updated status
+          queryClient.invalidateQueries(["aplpha-pte-voucher-listings"]);
+          
+          // ✅ Re-run filter API if we're currently on a filtered view
+          if (selectedFilter !== "Show All") {
+            const filterTypeMap = {
+              "Debit Credit": "debit/credit",
+              "Bank Transfer": "bank transfer"
+            };
+            
+            const apiFilterValue = filterTypeMap[selectedFilter];
+            
+            if (apiFilterValue) {
+              const filterFormData = new FormData(); // Renamed to avoid conflict
+              filterFormData.append("type", apiFilterValue);
+  
+              filterMutation.mutate(
+                {
+                  payload: filterFormData,
+                  path: "admin/filter-alpha/",
+                },
+                {
+                  onSuccess: (data) => {
+                    console.log("Re-filtered after approval:", data);
+                    setFilteredData(data);
+                  },
+                  onError: (error) => {
+                    console.error("Re-filter Error:", error);
+                    // If re-filtering fails, reset to show all
+                    setSelectedFilter("Show All");
+                    setFilteredData(null);
+                  },
+                }
+              );
+            }
+          }
         },
         onError: (error) => {
           const errorMessage =
@@ -295,6 +348,51 @@ const AlphaPte = () => {
     );
   };
   
+  const handleFilterChange = (filterValue) => {
+    setSelectedFilter(filterValue);
+    
+    if (filterValue === "Show All") {
+      // Reset to original data
+      setFilteredData(null);
+      return;
+    }
+  
+    // Map filter options to API values
+    const filterTypeMap = {
+      "Debit Credit": "debit/credit",
+      "Bank Transfer": "bank transfer"
+    };
+  
+    const apiFilterValue = filterTypeMap[filterValue];
+    
+    if (apiFilterValue) {
+      const formData = new FormData();
+      formData.append("type", apiFilterValue);
+  
+      filterMutation.mutate(
+        {
+          payload: formData,
+          path: "admin/filter-alpha/",
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Filter API Response:", data);
+            setFilteredData(data);
+            toast.success(`Filtered by ${filterValue}`);
+            queryClient.invalidateQueries(["aplpha-pte-voucher-listings"]);
+          },
+          onError: (error) => {
+            console.error("Filter Error:", error);
+            const errorMessage =
+              error?.response?.data?.error || "Failed to filter data";
+            toast.error(errorMessage);
+          },
+        }
+      );
+    }
+  };
+  
+ 
 
   return (
     <div className="flex flex-col gap-2  w-full">
@@ -308,6 +406,13 @@ const AlphaPte = () => {
         download={false}
         search={true}
         filter={true}
+        filterOptions={filterOptions}
+        setSelectedFilter={handleFilterChange} // Updated to use our handler
+        selectedFilter={selectedFilter}
+        filterLoading={filterMutation.isPending} // Show loading state during filter
+
+
+
         pagination={true}
         modal={false}
         Loading={isLoading || IsLoadingResultSearch}
@@ -349,7 +454,12 @@ const AlphaPte = () => {
 
       <div className="border rounded-lg p-4 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gray-200 rounded-md" />
+
+          <div className="w-16 h-16 rounded-md" >
+            <img src={alfa} alt="" 
+            className="w-full h-full object-contain rounded-md"
+            />
+          </div>
           <div>
             <p className="font-semibold">{formState?.product_name}</p>
             <p className="text-sm text-gray-500">

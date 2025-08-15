@@ -7,6 +7,8 @@ import { uploadButton, checkout } from "../../../assets/index";
 import { fetchResults } from "../../../Services/GetResults";
 import { EditResultMutation } from "../../../Services/Editservice";
 import toast, { Toaster } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 const EditDeals = ({
   isOpen,
@@ -29,6 +31,8 @@ const EditDeals = ({
   } = fetchResults("add-voucher", "/api/admin/get-all-Aplha-Pte-names/");
 
   const mutation = EditResultMutation();
+  const queryClient = useQueryClient(); // Add this for manual invalidation
+
 
   const ProductOptions =
     Products?.data?.map((item) => ({
@@ -108,6 +112,8 @@ const EditDeals = ({
       image_3: null,
       image_4: null,
       isPopular: false,
+      status:"",
+      include_spmt:"",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
@@ -191,6 +197,7 @@ const EditDeals = ({
       formData.append("price", values.price || "");
       formData.append("alpha_pte", values.alpha_pte || "");
       formData.append("save_rs", values.save_rs || "");
+      formData.append("status",values.status)
 
       // Append multiple or single products
       formData.append("products", (values.products || []).join(","));
@@ -238,6 +245,7 @@ const EditDeals = ({
           formData.append("image_4", "");
         }
       }
+      formData.append("include_spmt",values.include_spmt)
 
       mutation.mutate(
         {
@@ -247,6 +255,12 @@ const EditDeals = ({
         },
         {
           onSuccess: (data) => {
+            queryClient.invalidateQueries(["our-deals"]);
+            queryClient.refetchQueries(["our-deals"]);
+            
+            // Also try without array (in case fetchResults uses string format)
+            queryClient.invalidateQueries("our-deals");
+            queryClient.refetchQueries("our-deals");
             toast.success("Deal updated successfully!");
             onClose();
           },
@@ -304,6 +318,8 @@ const EditDeals = ({
         image_3: data.image_3 || null,
         image_4: data.image_4 || null,
         isPopular: data.isPopular || false,
+        status:data.status,
+        include_spmt:data.include_spmt
       });
 
       setKeyFeatures(featuresArray);
@@ -480,7 +496,20 @@ const EditDeals = ({
                   </div>
                 )}
               </div>
-
+ {/* Include include_spmt Checkbox */}
+ <div className="mb-4">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formik.values.include_spmt}
+                    onChange={(e) =>
+                      formik.setFieldValue("include_spmt", e.target.checked)
+                    }
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">Include SMPT</span>
+                </label>
+              </div>
               {/* Alpha PTE Field */}
               <InputFields
                 label="Alpha PTE"
@@ -511,7 +540,18 @@ const EditDeals = ({
                 touched={formik.touched.save_rs}
                 {...formik.getFieldProps("save_rs")}
               />
-
+  <InputFields
+                label="Status"
+                placeholder="Select status"
+                isSelect={true}
+                options={[
+                  { value: "true", label: "Active" },
+                  { value: "false", label: "Inactive" },
+                ]}
+                error={formik.errors.status}
+                touched={formik.touched.status}
+                {...formik.getFieldProps("status")}
+              />
               {/* Key Features Field */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700">Key Features</label>

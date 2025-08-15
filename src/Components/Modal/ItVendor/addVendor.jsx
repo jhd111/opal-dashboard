@@ -58,6 +58,7 @@ const AddVendor = ({
   const formik = useFormik({
     initialValues: {
       name: "",
+      description:"",
       // status: "", // Default status
       photo: null,      // File upload field
     },
@@ -88,6 +89,10 @@ const AddVendor = ({
       // Only append photo if category is false
       if (!category && values.photo) {
         formData.append("voucher_image", values.photo);
+      }
+      if (category && values.description)
+      {
+        formData.append("description",values.description)
       }
 
       mutation.mutate(
@@ -141,6 +146,17 @@ const AddVendor = ({
               touched={formik.touched.name}
               {...formik.getFieldProps("name")}
             />
+             {/* description Field */}
+             {category &&
+             <InputFields
+              label="description"
+              placeholder="Enter description"
+              type="text"
+              error={formik.errors.description}
+              touched={formik.touched.description}
+              {...formik.getFieldProps("description")}
+            />
+             }
 
             {/* Status Dropdown */}
             {/* <InputFields

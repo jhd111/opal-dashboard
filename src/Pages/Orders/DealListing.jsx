@@ -10,7 +10,7 @@ import { SearchResultsByOrderId } from "../../Services/OrderSearch";
 
 import { RxCross2 } from "react-icons/rx";
 import { GrStatusGood } from "react-icons/gr";
-import AlphaPteDealTable from "../../Components/ReusableTable/AlphaPteDealTable";
+import OrderDealTable from "../../Components/ReusableTable/OrderDealTable";
 
 import { AddResultMutation } from "../../Services/AddResultService";
 import { toast } from "react-hot-toast";
@@ -39,6 +39,7 @@ const DealsListing = () => {
 
   const mutation = AddAddDealEmailMutation(["deal-order-listing"]);
   const mutation1 = AddResultMutation();
+  const filterMutation = AddResultMutation(); // New mutation for filtering
   const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
@@ -46,6 +47,10 @@ const DealsListing = () => {
   const [voucher, setVoucher] = useState();
   console.log(voucher)
   const [voucherStatus, setVoucherStatus] = useState(false);
+
+  const filterOptions = ["Show All", "Debit Credit", "Bank Transfer"];
+  const [selectedFilter, setSelectedFilter] = useState("Show All");
+  const [filteredData, setFilteredData] = useState(null); // Store filtered data
 
   const [transformedData1, setTransformedData1] = useState({
     "Table Data1": [],
@@ -70,8 +75,18 @@ const DealsListing = () => {
 
   // Transform function for fetch API response (array of payments)
   const transformFetchApiResponse = (apiResponse, currentPage, pageSize) => {
-    const data = apiResponse?.payments || [];
-    console.log(data)
+    // Handle both original API structure (with payments property) and filter API structure (direct array)
+    let data = [];
+    
+    if (Array.isArray(apiResponse)) {
+      // Filter API returns direct array
+      data = apiResponse;
+    } else if (apiResponse?.payments) {
+      // Original API returns object with payments property
+      data = apiResponse.payments;
+    }
+    
+    console.log("Transform data:", data);
 
     return data
       .filter((item) => item.order_id && item.product_name) // Filter out entries with missing order_id or product_name
@@ -80,7 +95,7 @@ const DealsListing = () => {
 
         // Determine status based on payment type
         const status =
-          item.type === "bank_transfer"
+          item.type === "bank_transfer" || item.type === "bank transfer"
             ? item.payment_approved === true
               ? "APPROVED"
               : "PENDING"
@@ -89,7 +104,7 @@ const DealsListing = () => {
         return {
           no: `${srNo}`,
           orderId: item.order_id || "N/A",
-          typee:item.product_type || "N/A",
+          typee: item.product_type || "N/A",
           voucherName: item.product_name || "N/A",
           quantity: item.product_quantity || 1,
           amount: item.product_price || "0.00",
@@ -97,7 +112,6 @@ const DealsListing = () => {
             ? new Date(item.created_at).toLocaleDateString()
             : "N/A",
           customerName: item.full_name || "Unknown",
-          // contact: `${item.email || 'N/A'} / ${item.phone_number || 'N/A'}`,
           email: ` ${item.email || "N/A"}`,
           phone: item.phone_number || "N/A",
           paymentType: item.type || "N/A",
@@ -106,7 +120,7 @@ const DealsListing = () => {
             item.card_number ||
             (item.type.includes("bank") ? "N/A" : "Unknown"),
           status: status,
-          screenshot: item.payment_image || null,
+          screenshot: item.payment_image || item.payment_image_url || null, // Handle both property names
           ...item, // Include rest of the fields in case needed elsewhere
         };
       });
@@ -139,7 +153,6 @@ const DealsListing = () => {
           ? new Date(item.created_at).toLocaleDateString()
           : "N/A",
         customerName: item.full_name || "Unknown",
-        // contact: `${item.email || 'N/A'} / ${item.phone_number || 'N/A'}`,
         email: ` ${item.email || "N/A"}`,
         phone: item.phone_number || "N/A",
         paymentType: item.type || "N/A",
@@ -151,6 +164,51 @@ const DealsListing = () => {
         ...item, // Include rest of the fields in case needed elsewhere
       },
     ];
+  };
+
+  // New function to handle filter API call
+  const handleFilterChange = (filterValue) => {
+    setSelectedFilter(filterValue);
+    
+    if (filterValue === "Show All") {
+      // Reset to original data
+      setFilteredData(null);
+      return;
+    }
+
+    // Map filter options to API values
+    const filterTypeMap = {
+      "Debit Credit": "debit/credit",
+      "Bank Transfer": "bank transfer"
+    };
+
+    const apiFilterValue = filterTypeMap[filterValue];
+    
+    if (apiFilterValue) {
+      const formData = new FormData();
+      formData.append("type", apiFilterValue);
+
+      filterMutation.mutate(
+        {
+          payload: formData,
+          path: "admin/filter-deal/",
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Filter API Response:", data);
+            setFilteredData(data);
+            toast.success(`Filtered by ${filterValue}`);
+            queryClient.invalidateQueries(["aplpha-pte-voucher-listings"]);
+          },
+          onError: (error) => {
+            console.error("Filter Error:", error);
+            const errorMessage =
+              error?.response?.data?.error || "Failed to filter data";
+            toast.error(errorMessage);
+          },
+        }
+      );
+    }
   };
 
   // columns
@@ -184,42 +242,38 @@ const DealsListing = () => {
     }
   }, [ResultSearch, currentPage, debouncedSearchTable1]);
 
-  // Effect to handle fetch results (when no search or search is cleared)
+  // Modified effect to handle both fetch results and filtered data
   useEffect(() => {
-    if (!debouncedSearchTable1 && ResultsApi?.data) {
-      const transformed = transformFetchApiResponse(
-        ResultsApi.data,
-        currentPage,
-        10
-      );
-      setTransformedData1({ "Table Data1": transformed });
-    }
-  }, [ResultsApi, currentPage, debouncedSearchTable1]);
-
-  // Effect to reset to original data when search is cleared
-  useEffect(() => {
-    if (debouncedSearchTable1 === "") {
-      if (ResultsApi?.data) {
+    if (!debouncedSearchTable1) {
+      // If we have filtered data, use it; otherwise use original data
+      const dataToUse = filteredData || ResultsApi?.data;
+      
+      if (dataToUse) {
         const transformed = transformFetchApiResponse(
-          ResultsApi.data,
+          dataToUse,
           currentPage,
           10
         );
         setTransformedData1({ "Table Data1": transformed });
       }
     }
-  }, [debouncedSearchTable1, ResultsApi, currentPage]);
+  }, [ResultsApi, filteredData, currentPage, debouncedSearchTable1]);
 
-  // const toggle = { toggle: true };
-
-  // const toggleIcon = {
-  //   status: (
-  //     <label className="inline-flex items-center cursor-pointer">
-  //       <input type="checkbox" className="sr-only peer" />
-  //       <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#34C759]"></div>
-  //     </label>
-  //   ),
-  // };
+  // Effect to reset to original data when search is cleared
+  useEffect(() => {
+    if (debouncedSearchTable1 === "") {
+      const dataToUse = filteredData || ResultsApi?.data;
+      
+      if (dataToUse) {
+        const transformed = transformFetchApiResponse(
+          dataToUse,
+          currentPage,
+          10
+        );
+        setTransformedData1({ "Table Data1": transformed });
+      }
+    }
+  }, [debouncedSearchTable1, ResultsApi, filteredData, currentPage]);
 
   const handleTabChange = (tabValue) => {
     setActiveTab(tabValue);
@@ -255,66 +309,6 @@ const DealsListing = () => {
 
   const categories = ["IT Vouchers", "Alfa PTE", "Our Deals"];
 
-  // const handleApprove = (payment_approved, aplha, voucher) => {
-  //   if (!formState?.id) {
-  //     console.error("No item selected for approval");
-  //     return;
-  //   }
-  
-  //   const id = formState.id;
-  //   const paymentType = formState.type; // e.g., 'debit/credit' or 'bank_transfer'
-  
-  //   const formData = new FormData();
-  
-  //   // Append basic fields
-  //   formData.append("id", id);
-  //   formData.append("status", payment_approved);
-  
-  //   // ✅ Safely append vouchers as JSON string
-  //   const vouchers = voucher?.[0]?.vouchers || {};
-  //   formData.append("vouchers", JSON.stringify(vouchers));
-  
-  //   // ✅ Only append email/password if alpha is true
-  //   if (aplha) {
-  //     formData.append("email", email || "");
-  //     formData.append("password", password || "");
-  //   }
-  
-  //   // ✅ Choose correct path based on payment type
-  //   let path = "";
-  //   if (paymentType === "debit/credit") {
-  //     path = "admin/debit-voucher-mail/";
-  //   } else if (paymentType === "bank_transfer" || paymentType === "bank transfer") {
-  //     path = "admin/deals-bank-email/";
-  //   }
-  
-  //   // ✅ Make mutation call
-  //   mutation.mutate(
-  //     {
-  //       payload: formData,
-  //       path: path,
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         toast.success("Approval updated successfully!");
-  //         setShowModal(false);
-  //         setFormState(null);
-  //         queryClient.invalidateQueries(["deal-order-listing"]);
-  //       },
-  //       onError: (error) => {
-  //         const errorMessage =
-  //           error?.response?.data?.error || "Failed to update approval";
-  //         toast.error(errorMessage);
-  //         setShowModal(false);
-  //       },
-  //     }
-  //   );
-  // };
-  
- 
-  
-  // Alternative: If your mutation function expects FormData but needs to send JSON
-  
   const handleApprove = (payment_approved, aplha, voucher) => {
     if (!formState?.id) {
       console.error("No item selected for approval");
@@ -388,7 +382,6 @@ const DealsListing = () => {
     );
   };
 
- 
   const FetchDealVoucher = (voucherStatus) => {
     if (!formState?.id) {
       console.error("No item selected for approval");
@@ -401,8 +394,6 @@ const DealsListing = () => {
     const formData = new FormData();
     formData.append("id", id);
     formData.append("status", voucherStatus);
-    // formData.append("email", email);
-    // formData.append("password", password);
 
      // Set endpoint based on payment type
      let path = ""; // default fallback
@@ -411,32 +402,167 @@ const DealsListing = () => {
      } else if (paymentType === "bank_transfer" || paymentType === "bank transfer") {
        path = "admin/deal-bank-approval/";
      }
-   
 
     mutation1.mutate(
       {
         payload: formData,
         path: path,
-        // path:"admin/deal-bank-email/"
       },
       {
         onSuccess: (data) => {
           toast.success("Vouchers fetched successfully!");
           setVoucher(data);
-
-          // setFormState(null);
-          // ✅ Refetch the voucher list to show updated status
-          // queryClient.invalidateQueries(["aplpha-pte-voucher-listings"]);
         },
         onError: (error) => {
           const errorMessage =
             error?.response?.data?.error || "Failed to fetch Vouchers";
           toast.error(errorMessage);
-          // setShowModal(false);
         },
       }
     );
   };
+
+  
+  // send vouchers back 
+  // const AddVoucherBackToInventory = () => {
+  //   if (!formState?.id) {
+  //     console.error("No item selected for approval");
+  //     return;
+  //   }
+  
+  //   if (!voucher || voucher.length === 0) {
+  //     console.error("No voucher data available");
+  //     return;
+  //   }
+  
+  //   const id = formState.id;
+  //   const paymentType = formState.type; // assumed to be 'debit/credit' or 'bank_transfer'
+  
+  //   // Extract vouchers from the state
+  //   const responseData = voucher[0]; // Get first item from array
+  //   const vouchers = responseData.vouchers;
+    
+  //   // Process all vouchers into comma-separated strings
+  //   const voucherEntries = Object.entries(vouchers);
+    
+  //   // Create comma-separated strings for product names and voucher codes
+  //   const productNames = [];
+  //   const voucherCodes = [];
+    
+  //   voucherEntries.forEach(([voucherName, voucherCode]) => {
+  //     // Skip prototype entries
+  //     if (voucherName === '__proto__' || voucherName === 'constructor') return;
+      
+  //     productNames.push(voucherName);
+  //     voucherCodes.push(voucherCode);
+  //   });
+    
+  //   const formData = new FormData();
+    
+  //   // Add comma-separated values
+  //   formData.append("product_name", productNames.join(","));
+  //   formData.append("voucher_code", voucherCodes.join(","));
+    
+  //   // You can also add the id if needed
+  //   // formData.append("id", id);
+  
+  //   // Set endpoint based on payment type (keeping your original logic)
+  //   let path = "admin/back-code/"; // default
+  //   if (paymentType === "debit/credit") {
+  //     path = "admin/deal-vouchers/";
+  //   } else if (paymentType === "bank_transfer" || paymentType === "bank transfer") {
+  //     path = "admin/deal-bank-approval/";
+  //   }
+  
+  //   // Single API call with all vouchers
+  //   mutation.mutate(
+  //     {
+  //       payload: formData,
+  //       path: "admin/back-code/",
+  //     },
+  //     {
+  //       onSuccess: (data) => {
+  //         toast.success("All vouchers added to inventory successfully!");
+  //         // setVoucher(data);
+  //       },
+  //       onError: (error) => {
+  //         const errorMessage =
+  //           error?.response?.data?.error || "Failed to add vouchers to inventory";
+  //         toast.error(errorMessage);
+  //       },
+  //     }
+  //   );
+  // };
+  const AddVoucherBackToInventory = () => {
+    if (!formState?.id) {
+      console.error("No item selected for approval");
+      return;
+    }
+  
+    if (!voucher || voucher.length === 0) {
+      console.error("No voucher data available");
+      return;
+    }
+  
+    const id = formState.id;
+    const paymentType = formState.type; // assumed to be 'debit/credit' or 'bank_transfer'
+  
+    // Extract vouchers from the state
+    const responseData = voucher[0]; // Get first item from array
+    const vouchers = responseData.vouchers;
+    
+    // // Debug: Log the vouchers object
+    // console.log("Vouchers object:", vouchers);
+    // console.log("Voucher entries:", Object.entries(vouchers));
+    
+    // Process vouchers into array format
+    const voucherEntries = Object.entries(vouchers);
+    const voucherArray = [];
+    
+    voucherEntries.forEach(([voucherName, voucherCode]) => {
+      // Skip prototype entries
+      if (voucherName === '__proto__' || voucherName === 'constructor') return;
+      
+      voucherArray.push({
+        product_name: voucherName,
+        voucher_code: voucherCode
+      });
+    });
+  
+    console.log("Voucher array to send:", voucherArray);
+  
+    // Always send as JSON array (whether single or multiple vouchers)
+    const payload = voucherArray;
+    
+    mutation.mutate(
+      {
+        payload: payload,
+        path: "admin/back-code/",
+        contentType: "application/json"
+      },
+      {
+        onSuccess: (data) => {
+          console.log("Success for vouchers");
+          toast.success(`${voucherArray.length > 1 ? 'All vouchers' : 'Voucher'} added to inventory successfully!`);
+        },
+        onError: (error) => {
+          console.error("Error for vouchers:", error);
+          const errorMessage =
+            error?.response?.data?.error || "Failed to add vouchers to inventory";
+          toast.error(errorMessage);
+        },
+      }
+    );
+  };
+  
+
+  // Usage example:
+  // The function now uses the voucher state directly
+  // Just call: AddVoucherBackToInventory()
+  
+  // Usage example:
+  // When you get the API response, call the function like this:
+  // AddVoucherBackToInventory(apiResponseData);
 
   useEffect(() => {
     if (showModal) {
@@ -449,7 +575,7 @@ const DealsListing = () => {
   return (
     <div className="flex flex-col gap-2  w-full">
       {/* ------------------Table------------------ */}
-      <AlphaPteDealTable
+      <OrderDealTable
         columns={columns}
         data={transformedData1["Table Data1"]}
         actions={actions}
@@ -457,7 +583,13 @@ const DealsListing = () => {
         borderRadius={true}
         download={false}
         search={true}
+
         filter={true}
+        filterOptions={filterOptions}
+        setSelectedFilter={handleFilterChange} // Updated to use our handler
+        selectedFilter={selectedFilter}
+        filterLoading={filterMutation.isPending} // Show loading state during filter
+
         pagination={true}
         modal={false}
         Loading={isLoading || IsLoadingResultSearch}
@@ -475,7 +607,11 @@ const DealsListing = () => {
     <div className="relative bg-white p-5 rounded-lg w-[95%] lg:w-[40%] 2xl:w-[40%] shadow-2xl max-h-[85vh] overflow-y-auto">
       {/* ❌ X Close Button */}
       <button
-        onClick={() => setShowModal(false)}
+        onClick={() => {
+          AddVoucherBackToInventory();
+          setShowModal(false);
+          setVoucher("")
+        }}
         className="cursor-pointer absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl font-bold"
       >
         &times;
@@ -540,7 +676,12 @@ const DealsListing = () => {
       {/* Action Buttons - Access first element of array */}
       <div className="flex justify-end gap-4 mt-6">
         <button
-          onClick={() => handleApprove(false, voucher?.[0]?.alpha_pte?.status,voucher)}
+          
+          onClick={() => {
+            AddVoucherBackToInventory();
+            setShowModal(false);
+            setVoucher("")
+          }}
           className="cursor-pointer px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400"
         >
           Close

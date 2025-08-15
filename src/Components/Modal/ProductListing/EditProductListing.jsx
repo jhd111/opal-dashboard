@@ -5,10 +5,9 @@ import InputFields from "../../InputFields/InputFields";
 import { uploadButton } from "../../../assets/index";
 
 import { AddResultMutation } from "../../../Services/AddResultService";
-import { EditResultMutation} from "../../../Services/Editservice"
-
+import { EditResultMutation } from "../../../Services/Editservice";
 import toast, { Toaster } from "react-hot-toast";
-import { fetchResults } from  "../../../Services/GetResults"
+import { fetchResults } from "../../../Services/GetResults";
 
 const EditProductListing = ({
   isOpen,
@@ -27,13 +26,13 @@ const EditProductListing = ({
   } = fetchResults("add-voucher", "/api/admin/get-product-category/");
 
   const vendorOptions =
-  categoriesApi?.data?.map((item) => ({
-    label: item.name,
-    value: item.id, // Use ID for form submission
-    name: item.name, // Keep name for conditional logic
-  })) || [];
+    categoriesApi?.data?.map((item) => ({
+      label: item.name,
+      value: item.id, // Use ID for form submission
+      name: item.name, // Keep name for conditional logic
+    })) || [];
 
-  console.log("formState",formState)
+  console.log("formState", formState);
 
   // Helper function to get category name by ID
   const getCategoryNameById = (categoryId) => {
@@ -98,7 +97,7 @@ const EditProductListing = ({
       validity: formState?.validity || "", // Validity
       type: formState?.type || "", // Type
       price: formState?.price || 0, // Price
-      status: formState?.status ? "Active" : "Inactive", // Status (convert boolean to string)
+      status: formState?.status ? "true" : "false", // Convert boolean to string "true"/"false"
       photo: null, // File upload field
     },
     enableReinitialize: true, // This allows the form to reinitialize when formState changes
@@ -121,17 +120,6 @@ const EditProductListing = ({
         .positive("Price must be positive")
         .required("Price is required"),
       status: Yup.string().required("Status is required"),
-      // photo: Yup.mixed()
-      //   .test(
-      //     "fileFormat",
-      //     "Only JPEG and PNG formats are supported.",
-      //     (value) => !value || ["image/jpeg", "image/png"].includes(value?.type)
-      //   )
-      //   .test(
-      //     "fileSize",
-      //     "File size must not exceed 5 MB.",
-      //     (value) => !value || (value && value.size / (1024 * 1024) <= 5)
-      //   ),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -139,12 +127,13 @@ const EditProductListing = ({
       formData.append("category", values.vendor); // This will be the category ID
       formData.append("price", values.price);
       formData.append("description", values.description);
-      
+      formData.append("status", values.status === "true" ? "true" : "false"); // Ensure correct value
+
       // Only append validity if it should be shown for this category
       if (shouldShowValidityField(values.vendor)) {
         formData.append("validity", values.validity);
       }
-      
+
       // Only append type if it should be shown for this category
       if (shouldShowTypeDropdown(values.vendor)) {
         formData.append("type", values.type);
@@ -166,7 +155,7 @@ const EditProductListing = ({
       mutation.mutate(
         {
           payload: formData,
-          path: "admin/add-it-voucher/", // Use the correct path based on whether it's edit or create
+          path: "admin/add-it-voucher/",
         },
         {
           onSuccess: (data) => {
@@ -216,7 +205,6 @@ const EditProductListing = ({
             </button>
           </div>
           <form onSubmit={formik.handleSubmit} className="">
-            
             {/* Voucher Name Field */}
             <InputFields
               label="Voucher Name"
@@ -226,7 +214,7 @@ const EditProductListing = ({
               touched={formik.touched.voucherName}
               {...formik.getFieldProps("voucherName")}
             />
-            
+
             {/* Vendor Dropdown */}
             <InputFields
               label="Category"
@@ -237,7 +225,7 @@ const EditProductListing = ({
               touched={formik.touched.vendor}
               {...formik.getFieldProps("vendor")}
             />
-           
+
             {/* Description Field */}
             <InputFields
               label="Description"
@@ -288,21 +276,24 @@ const EditProductListing = ({
               touched={formik.touched.price}
               {...formik.getFieldProps("price")}
             />
-            
+
             {/* Status Dropdown */}
             <InputFields
               label="Status"
               placeholder="Select status"
               isSelect={true}
               options={[
-                { value: "Active", label: "Active" },
-                { value: "Inactive", label: "Inactive" },
+                { value: "true", label: "Active" },
+                { value: "false", label: "Inactive" },
               ]}
               error={formik.errors.status}
               touched={formik.touched.status}
-              {...formik.getFieldProps("status")}
+              value={formik.values.status} // Explicitly set value
+              onChange={(e) => formik.setFieldValue("status", e.target.value)}
+              onBlur={formik.handleBlur}
+              name="status"
             />
-            
+
             {/* Upload Photo */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700">
@@ -343,7 +334,7 @@ const EditProductListing = ({
                   <div className="relative flex items-center justify-center">
                     <img
                       src={
-                        formik.values.photo 
+                        formik.values.photo
                           ? URL.createObjectURL(formik.values.photo)
                           : formState?.image_url
                       }
@@ -355,7 +346,6 @@ const EditProductListing = ({
                         onClick={() => {
                           formik.setFieldValue("photo", null);
                           formik.setFieldError("photo", "");
-                          // If editing and removing existing image, you might want to handle this differently
                         }}
                         className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] cursor-pointer"
                       >
@@ -391,7 +381,7 @@ const EditProductListing = ({
                 </p>
               )}
             </div>
-            
+
             {/* Buttons */}
             <div className="flex justify-end mt-4">
               <button

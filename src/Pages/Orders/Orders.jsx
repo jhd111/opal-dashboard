@@ -60,6 +60,8 @@ const OrderList = () => {
   } = fetchResults("payfast-payment-count", "/api/admin/total-payment-count/");
 
   const mutation = AddResultMutation(["it-voucher-order-listing"]);
+  const filterMutation = AddResultMutation(); // New mutation for filtering
+
   const queryClient = useQueryClient();
 
   // SearchApi 
@@ -82,6 +84,10 @@ const OrderList = () => {
   const [isEditResultModalOpen, setEditResultIsModalOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const filterOptions = ["Show All", "Debit Credit", "Bank Transfer"];
+    const [selectedFilter, setSelectedFilter] = useState("Show All");
+    const [filteredData, setFilteredData] = useState(null); // Store filtered data
+
   // Process PayFast Payment Count data similar to Dashboard
   const rawStatusCounts = PayFastPaymentCount?.data?.status_counts || {};
   
@@ -99,7 +105,15 @@ const OrderList = () => {
 
   // Transform function for fetch API response (array of payments)
   const transformFetchApiResponse = (apiResponse, currentPage, pageSize) => {
-    const data = apiResponse?.payments || [];
+    let data = [];
+    
+    if (Array.isArray(apiResponse)) {
+      // Filter API returns direct array
+      data = apiResponse;
+    } else if (apiResponse?.payments) {
+      // Original API returns object with payments property
+      data = apiResponse.payments;
+    }
   
     return data
       .filter(item => item.order_id && item.product_name)
@@ -195,29 +209,38 @@ const OrderList = () => {
   }, [ResultSearch, currentPage, debouncedSearchTable1]);
   
   useEffect(() => {
-    if (!debouncedSearchTable1 && ResultsApi?.data) {
-      const transformed = transformFetchApiResponse(
-        ResultsApi.data,
-        currentPage,
-        10
-      );
-      setTransformedData1({ "Table Data1": transformed });
-    }
-  }, [ResultsApi, currentPage, debouncedSearchTable1]);
-
-  useEffect(() => {
-    if (debouncedSearchTable1 === "") {
-      if (ResultsApi?.data) {
+    if (!debouncedSearchTable1) {
+      // If we have filtered data, use it; otherwise use original data
+      const dataToUse = filteredData || ResultsApi?.data;
+      
+      if (dataToUse) {
         const transformed = transformFetchApiResponse(
-          ResultsApi.data,
+          dataToUse,
           currentPage,
           10
         );
         setTransformedData1({ "Table Data1": transformed });
       }
     }
-  }, [debouncedSearchTable1, ResultsApi, currentPage]);
-  
+  }, [ResultsApi, filteredData, currentPage, debouncedSearchTable1]);
+
+
+ // Effect to reset to original data when search is cleared
+ useEffect(() => {
+  if (debouncedSearchTable1 === "") {
+    const dataToUse = filteredData || ResultsApi?.data;
+    
+    if (dataToUse) {
+      const transformed = transformFetchApiResponse(
+        dataToUse,
+        currentPage,
+        10
+      );
+      setTransformedData1({ "Table Data1": transformed });
+    }
+  }
+}, [debouncedSearchTable1, ResultsApi, filteredData, currentPage]);
+
   const handleTabChange = (tabValue) => {
     setActiveTab(tabValue);
   };
@@ -243,6 +266,40 @@ const OrderList = () => {
           setShowModal(false);
           setFormState(null);
           queryClient.invalidateQueries(["it-voucher-order-listing"]);
+          
+          // ✅ Re-run filter API if we're currently on a filtered view
+          if (selectedFilter !== "Show All") {
+            const filterTypeMap = {
+              "Debit Credit": "debit/credit",
+              "Bank Transfer": "bank transfer"
+            };
+            
+            const apiFilterValue = filterTypeMap[selectedFilter];
+            
+            if (apiFilterValue) {
+              const formData = new FormData();
+              formData.append("type", apiFilterValue);
+
+              filterMutation.mutate(
+                {
+                  payload: formData,
+                  path: "admin/filter-voucher/", // Note: using filter-voucher for OrderList
+                },
+                {
+                  onSuccess: (data) => {
+                    console.log("Re-filtered after approval:", data);
+                    setFilteredData(data);
+                  },
+                  onError: (error) => {
+                    console.error("Re-filter Error:", error);
+                    // If re-filtering fails, reset to show all
+                    setSelectedFilter("Show All");
+                    setFilteredData(null);
+                  },
+                }
+              );
+            }
+          }
         },
         onError: (error) => {
           const errorMessage = error?.response?.data?.error || "Failed to update approval";
@@ -269,6 +326,51 @@ const OrderList = () => {
 
   const onTabChange = (value) => {
     setParentActiveTab(value);
+  };
+
+
+  const handleFilterChange = (filterValue) => {
+    setSelectedFilter(filterValue);
+    
+    if (filterValue === "Show All") {
+      // Reset to original data
+      setFilteredData(null);
+      return;
+    }
+
+    // Map filter options to API values
+    const filterTypeMap = {
+      "Debit Credit": "debit/credit",
+      "Bank Transfer": "bank transfer"
+    };
+
+    const apiFilterValue = filterTypeMap[filterValue];
+    
+    if (apiFilterValue) {
+      const formData = new FormData();
+      formData.append("type", apiFilterValue);
+
+      filterMutation.mutate(
+        {
+          payload: formData,
+          path: "admin/filter-voucher/",
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Filter API Response:", data);
+            setFilteredData(data);
+            toast.success(`Filtered by ${filterValue}`);
+            queryClient.invalidateQueries(["it-voucher-order-listing"]);
+          },
+          onError: (error) => {
+            console.error("Filter Error:", error);
+            const errorMessage =
+              error?.response?.data?.error || "Failed to filter data";
+            toast.error(errorMessage);
+          },
+        }
+      );
+    }
   };
 
   const categories = ['Vouchers', 'Alfa PTE', 'Our Deals'];
@@ -331,7 +433,15 @@ const OrderList = () => {
             borderRadius={true}
             download={false}
             search={true}
+
             filter={true}
+
+            filterOptions={filterOptions}
+            setSelectedFilter={handleFilterChange} // Updated to use our handler
+            selectedFilter={selectedFilter}
+            filterLoading={filterMutation.isPending} // Show loading state during filter
+    
+    
             pagination={true}
             modal={false}
             Loading={isLoading || IsLoadingResultSearch}

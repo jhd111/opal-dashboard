@@ -7,6 +7,7 @@ import checkout from "../assets/Images/checkout.png"
 import call from "../assets/Images/call.png"
 import home from "../assets/Images/home-4-fill.svg"
 import message from "../assets/Images/messagesss.png"
+import alfa from "../assets/Images/alfa.png"
 
 export {
     edit,
@@ -17,5 +18,6 @@ export {
     checkout,
     call,
     home,
-    message
+    message,
+    alfa
 }

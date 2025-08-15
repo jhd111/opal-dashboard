@@ -61,7 +61,7 @@ const Inventory = () => {
         serviceName: item?.product_name || "-",
         expiryDate: item?.expiry_date || "-",
         voucherFile: item?.voucher_files || "N/A", // could be a file link
-        type: item?.type || "N/A",
+        type: item?.type ?? "N/A",
         ...item,
       };
     });

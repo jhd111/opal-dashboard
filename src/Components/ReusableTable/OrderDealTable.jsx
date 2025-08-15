@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 
-const AlphaPteDealTable = ({
+const OrderDealTable = ({
   columns,
   data,
   actions,
@@ -684,10 +684,9 @@ const AlphaPteDealTable = ({
 
                         {/* If status is COMPLETED or payment is approved, show "--" */}
                         {(() => {
-      // Check if buttons should be hidden based on payment type
-      const shouldHideButtons = 
-        (row.type === "bank_transfer" && row.email_sent === true && row.payment_approved === true) ||
-        (row.type === "debit/credit" && row.email_sent === true && row.status === "COMPLETED");
+      // Check if buttons should be hidden for both payment types
+      // Hide buttons when both email_sent is true AND status is "COMPLETED"
+      const shouldHideButtons = row.email_sent === true && row.status === "COMPLETED";
 
       // If conditions are met, don't show buttons
       if (shouldHideButtons) {
@@ -794,4 +793,4 @@ const AlphaPteDealTable = ({
   );
 };
 
-export default AlphaPteDealTable;
+export default OrderDealTable;

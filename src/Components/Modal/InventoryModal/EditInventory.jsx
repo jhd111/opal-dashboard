@@ -211,6 +211,14 @@ const AddInventory = ({
     { label: "Type E", value: "Type E" },
   ];
 
+  // Function to check if Type dropdown should be shown
+  const shouldShowTypeDropdown = (productName) => {
+    const showTypeProducts = ['score', 'practice', 'mock test', 'mock', 'test'];
+    return showTypeProducts.some(keyword => 
+      productName.toLowerCase().includes(keyword.toLowerCase())
+    );
+  };
+
   // Enhanced scroll prevention effect
   useEffect(() => {
     if (isOpen) {
@@ -334,6 +342,13 @@ const AddInventory = ({
     },
   });
 
+  // Reset type field when product changes and type dropdown should not be shown
+  useEffect(() => {
+    if (formik.values.product_name && !shouldShowTypeDropdown(formik.values.product_name)) {
+      formik.setFieldValue("type", "");
+    }
+  }, [formik.values.product_name]);
+
   useEffect(() => {
     if (!isOpen) {
       formik.resetForm();
@@ -389,6 +404,18 @@ const AddInventory = ({
                 {...formik.getFieldProps("voucher_files")}
               /> */}
 
+
+
+
+              {/* Expiry Date Text Field */}
+              <InputFields
+                label="Expiry Date"
+                placeholder="Enter Expiry Date"
+                type="date"
+                error={formik.errors.expiry_date}
+                touched={formik.touched.expiry_date}
+                {...formik.getFieldProps("expiry_date")}
+              />
 <div className="relative w-full">
   {/* Label */}
   <label
@@ -401,6 +428,7 @@ const AddInventory = ({
   {/* Textarea */}
   <textarea
     id="voucher_files"
+    rows={10}
     className={`border p-2 w-full rounded outline-none mb-2 ${
       formik.touched.voucher_files && formik.errors.voucher_files
         ? "border-red-500"
@@ -419,28 +447,18 @@ const AddInventory = ({
     <div className="text-red-500 text-xs mb-3">{formik.errors.voucher_files}</div>
   )}
 </div>
-
-
-              {/* Expiry Date Text Field */}
-              <InputFields
-                label="Expiry Date"
-                placeholder="Enter Expiry Date"
-                type="date"
-                error={formik.errors.expiry_date}
-                touched={formik.touched.expiry_date}
-                {...formik.getFieldProps("expiry_date")}
-              />
-
-              {/* Type Dropdown (Not Compulsory) */}
-              <InputFields
-                label="Type (Optional)"
-                placeholder="Select Type"
-                isSelect={true}
-                options={TypeOptions}
-                error={formik.errors.type}
-                touched={formik.touched.type}
-                {...formik.getFieldProps("type")}
-              />
+              {/* Conditionally show Type Dropdown */}
+              {formik.values.product_name && shouldShowTypeDropdown(formik.values.product_name) && (
+                <InputFields
+                  label="Type"
+                  placeholder="Select Type"
+                  isSelect={true}
+                  options={TypeOptions}
+                  error={formik.errors.type}
+                  touched={formik.touched.type}
+                  {...formik.getFieldProps("type")}
+                />
+              )}
 
             </div>
 

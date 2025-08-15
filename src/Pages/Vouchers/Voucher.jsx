@@ -114,8 +114,8 @@ const [searchTable1, setSearchTable1] = useState("")
   const transformResultsApiResponse = (apiResponse, currentPage, pageSize) => {
     const data = apiResponse || [];
     console.log("data", data);
-    
-    return data?.map((item, index) => {
+    const filteredData = data.filter(item => item.is_it_voucher === true);
+    return filteredData?.map((item, index) => {
       const srNo = (currentPage - 1) * pageSize + index + 1;
       return {
         no: `${srNo}`, // Fixed: removed the undefined 'id' variable
@@ -433,7 +433,7 @@ const [searchTable2, setSearchTable2] = useState("")
   };
 
   const dateFilterButtons = [
-    { label: `Vendor(${(ResultsApi?.data?.length)})`, value: "Vendor" },
+   { label: `Vendor(${ResultsApi?.data?.filter(item => item.is_it_voucher === true)?.length || 0})`}, 
     { label: `Voucher(${(voucherApi?.data?.length)})`, value: "Voucher" },
     
   ];
