@@ -433,7 +433,7 @@ const [searchTable2, setSearchTable2] = useState("")
   };
 
   const dateFilterButtons = [
-   { label: `Vendor(${ResultsApi?.data?.filter(item => item.is_it_voucher === true)?.length || 0})`}, 
+   { label: `Vendor(${ResultsApi?.data?.filter(item => item.is_it_voucher === true)?.length || 0})`,value: "Vendor" }, 
     { label: `Voucher(${(voucherApi?.data?.length)})`, value: "Voucher" },
     
   ];

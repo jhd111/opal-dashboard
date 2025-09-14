@@ -31,7 +31,7 @@ const AddVoucher = ({
     name: item.name, // Keep name for conditional logic
   })) || [];
 
-  console.log("vendorOptions",vendorOptions)
+  
 
   // Helper function to get category name by ID
   const getCategoryNameById = (categoryId) => {
@@ -49,6 +49,12 @@ const AddVoucher = ({
   const shouldShowValidityField = (selectedVendorId) => {
     const categoryName = getCategoryNameById(selectedVendorId);
     return categoryName === "ape uni" || categoryName === "APE UNI";
+  };
+
+  // **NEW: Helper function to check if selected category should show country pricing**
+  const shouldShowCountryPricing = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "Pearson PTE Voucher";
   };
 
   // Enhanced scroll prevention effect
@@ -98,6 +104,10 @@ const AddVoucher = ({
       price: 0, // Price
       status: "", // Status
       photo: null, // File upload field
+      // **NEW: Country pricing fields**
+      selectedCountries: [], // Array to store selected countries
+      pakistanPrice: "", // Price for Pakistan
+      ukPrice: "", // Price for UK
     },
     validationSchema: Yup.object({
       voucherName: Yup.string().required("Voucher Name is required"),
@@ -113,10 +123,40 @@ const AddVoucher = ({
         then: (schema) => schema.required("Type is required"),
         otherwise: (schema) => schema,
       }),
-      price: Yup.number()
-        .typeError("Price must be a number")
-        .positive("Price must be positive")
-        .required("Price is required"),
+      price: Yup.number().when("vendor", {
+        is: (vendorId) => !shouldShowCountryPricing(vendorId),
+        then: (schema) => schema
+          .typeError("Price must be a number")
+          .positive("Price must be positive")
+          .required("Price is required"),
+        otherwise: (schema) => schema,
+      }),
+      // **NEW: Country pricing validations**
+      selectedCountries: Yup.array().when("vendor", {
+        is: (vendorId) => shouldShowCountryPricing(vendorId),
+        then: (schema) => schema.min(1, "At least one country must be selected"),
+        otherwise: (schema) => schema,
+      }),
+      pakistanPrice: Yup.string().when(["vendor", "selectedCountries"], {
+        is: (vendorId, selectedCountries) => 
+          shouldShowCountryPricing(vendorId) && selectedCountries?.includes("pakistan"),
+        then: (schema) => schema
+          .required("Pakistan price is required")
+          .test("is-positive", "Price must be positive", (value) => 
+            value && parseFloat(value) > 0
+          ),
+        otherwise: (schema) => schema,
+      }),
+      ukPrice: Yup.string().when(["vendor", "selectedCountries"], {
+        is: (vendorId, selectedCountries) => 
+          shouldShowCountryPricing(vendorId) && selectedCountries?.includes("uk"),
+        then: (schema) => schema
+          .required("UK price is required")
+          .test("is-positive", "Price must be positive", (value) => 
+            value && parseFloat(value) > 0
+          ),
+        otherwise: (schema) => schema,
+      }),
       status: Yup.string().required("Status is required"),
       photo: Yup.mixed()
         .test(
@@ -134,9 +174,24 @@ const AddVoucher = ({
       const formData = new FormData();
       formData.append("name", values.voucherName);
       formData.append("category", values.vendor);
-      formData.append("price", values.price);
       formData.append("description", values.description);
       formData.append("status",values.status)
+      
+      // **UPDATED: Price handling for country pricing vs regular price**
+      if (shouldShowCountryPricing(values.vendor)) {
+        // Build country_pricing object
+        const countryPricing = {};
+        if (values.selectedCountries.includes("pakistan") && values.pakistanPrice) {
+          countryPricing.pakistan = parseFloat(values.pakistanPrice);
+        }
+        if (values.selectedCountries.includes("uk") && values.ukPrice) {
+          countryPricing.uk = parseFloat(values.ukPrice);
+        }
+        formData.append("country_pricing", JSON.stringify(countryPricing));
+        formData.append("price", values.price);
+      } else {
+        formData.append("price", values.price);
+      }
       
       // Only append validity if it should be shown for this category
       if (shouldShowValidityField(values.vendor)) {
@@ -172,7 +227,7 @@ const AddVoucher = ({
     },
   });
 
-  // Reset type and validity when vendor changes
+  // **UPDATED: Reset fields when vendor changes**
   useEffect(() => {
     if (formik.values.vendor) {
       if (!shouldShowTypeDropdown(formik.values.vendor)) {
@@ -180,6 +235,14 @@ const AddVoucher = ({
       }
       if (!shouldShowValidityField(formik.values.vendor)) {
         formik.setFieldValue("validity", "");
+      }
+      // **NEW: Reset country pricing fields when vendor changes**
+      if (!shouldShowCountryPricing(formik.values.vendor)) {
+        formik.setFieldValue("selectedCountries", []);
+        formik.setFieldValue("pakistanPrice", "");
+        formik.setFieldValue("ukPrice", "");
+      } else {
+        formik.setFieldValue("price", 0); // Reset regular price for country pricing
       }
     }
   }, [formik.values.vendor]);
@@ -189,6 +252,28 @@ const AddVoucher = ({
       formik.resetForm();
     }
   }, [isOpen]);
+
+  // **NEW: Handle country selection change**
+  const handleCountryChange = (country) => {
+    const currentCountries = formik.values.selectedCountries;
+    let updatedCountries;
+    
+    if (currentCountries.includes(country)) {
+      // Remove country
+      updatedCountries = currentCountries.filter(c => c !== country);
+      // Clear price for removed country
+      if (country === "pakistan") {
+        formik.setFieldValue("pakistanPrice", "");
+      } else if (country === "uk") {
+        formik.setFieldValue("ukPrice", "");
+      }
+    } else {
+      // Add country
+      updatedCountries = [...currentCountries, country];
+    }
+    
+    formik.setFieldValue("selectedCountries", updatedCountries);
+  };
 
   if (!isOpen) return null;
 
@@ -269,15 +354,80 @@ const AddVoucher = ({
               />
             )}
 
-            {/* Price Field */}
-            <InputFields
-              label="Price"
-              placeholder="Enter Price"
-              type="number"
-              error={formik.errors.price}
-              touched={formik.touched.price}
-              {...formik.getFieldProps("price")}
-            />
+            {/* **NEW: Country Selection and Pricing - Show only for Pearson Pte Voucher** */}
+            {shouldShowCountryPricing(formik.values.vendor) && (
+              <div className="mt-4">
+                {/* Country Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Countries
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formik.values.selectedCountries.includes("pakistan")}
+                        onChange={() => handleCountryChange("pakistan")}
+                        className="mr-2"
+                      />
+                      Pakistan
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formik.values.selectedCountries.includes("uk")}
+                        onChange={() => handleCountryChange("uk")}
+                        className="mr-2"
+                      />
+                      UK
+                    </label>
+                  </div>
+                  {formik.errors.selectedCountries && formik.touched.selectedCountries && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {formik.errors.selectedCountries}
+                    </p>
+                  )}
+                </div>
+
+                {/* Pakistan Price Field */}
+                {formik.values.selectedCountries.includes("pakistan") && (
+                  <InputFields
+                    label="Pakistan Price"
+                    placeholder="Enter Pakistan Price"
+                    type="number"
+                    step="0.01"
+                    error={formik.errors.pakistanPrice}
+                    touched={formik.touched.pakistanPrice}
+                    {...formik.getFieldProps("pakistanPrice")}
+                  />
+                )}
+
+                {/* UK Price Field */}
+                {formik.values.selectedCountries.includes("uk") && (
+                  <InputFields
+                    label="UK Price"
+                    placeholder="Enter UK Price"
+                    type="number"
+                    step="0.01"
+                    error={formik.errors.ukPrice}
+                    touched={formik.touched.ukPrice}
+                    {...formik.getFieldProps("ukPrice")}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* **UPDATED: Regular Price Field - Show only when NOT using country pricing** */}
+            {/* {!shouldShowCountryPricing(formik.values.vendor) && ( */}
+              <InputFields
+                label="Price"
+                placeholder="Enter Price"
+                type="number"
+                error={formik.errors.price}
+                touched={formik.touched.price}
+                {...formik.getFieldProps("price")}
+              />
+            {/* )} */}
             
             {/* Status Dropdown */}
             <InputFields
@@ -285,8 +435,8 @@ const AddVoucher = ({
               placeholder="Select status"
               isSelect={true}
               options={[
-                { value: "Active", label: "Active" },
-                { value: "Inactive", label: "Inactive" },
+                { value: "true", label: "Active" },
+                { value: "false", label: "Inactive" },
               ]}
               error={formik.errors.status}
               touched={formik.touched.status}
