@@ -78,6 +78,7 @@ const AddVendor = ({
             "File size must not exceed 5 MB.",
             (value) => !value || value.size / (1024 * 1024) <= 5
           ),
+          // price:Yup.string().required(`Price is required`),
       }),
     }),
     
@@ -87,8 +88,11 @@ const AddVendor = ({
       formData.append("is_it_voucher", category ? false : true);
 
       // Only append photo if category is false
-      if (!category && values.photo) {
+      if ( values.photo) {
         formData.append("voucher_image", values.photo);
+      }
+      if(category&& values.price){
+        formData.append("price", values.price);
       }
       if (category && values.description)
       {
@@ -146,6 +150,17 @@ const AddVendor = ({
               touched={formik.touched.name}
               {...formik.getFieldProps("name")}
             />
+             {/* price Field */}
+             {category &&
+             <InputFields
+              label="Price"
+              placeholder="Enter Price"
+              type="text"
+              error={formik.errors.price}
+              touched={formik.touched.price}
+              {...formik.getFieldProps("price")}
+            />
+             }
              {/* description Field */}
              {category &&
              <InputFields
@@ -157,6 +172,7 @@ const AddVendor = ({
               {...formik.getFieldProps("description")}
             />
              }
+            
 
             {/* Status Dropdown */}
             {/* <InputFields
@@ -173,7 +189,7 @@ const AddVendor = ({
             /> */}
 
             {/* Upload Photo - Only show when category is false */}
-            {!category && (
+            {/* {!category && ( */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700">Upload Photo</label>
                 <div
@@ -230,7 +246,7 @@ const AddVendor = ({
                   <p className="text-red-500 text-sm mt-1">{formik.errors.photo}</p>
                 )}
               </div>
-            )}
+            {/* )} */}
 
             {/* Buttons */}
             <div className="flex justify-end mt-4">

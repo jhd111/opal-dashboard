@@ -67,7 +67,8 @@ const EditVendor = ({
       name: formState?.name || '',
       // status: String(formState?.is_it_voucher ?? ''),
       photo: formState?.voucher_image || null,
-      description:formState?.description
+      description:formState?.description,
+      price :formState?.price
     },
     validationSchema: Yup.object({
       name: Yup.string().required(`${nameLabel} is required`),
@@ -96,14 +97,16 @@ const EditVendor = ({
       formData.append("is_it_voucher", category ? false : true);
       
       // Only append image if a new file is selected (File object)
-      if (!category && values.photo && values.photo instanceof File) {
+      if (values.photo && values.photo instanceof File) {
         formData.append("voucher_image", values.photo); // Changed from voucher_image to image
       }
       if (category && values.description)
       {
          formData.append('description',values.description)
       }
-
+      if(category&& values.price){
+        formData.append("price", values.price);
+      }
       // For edit mode, you need to add an ID field to identify which record to update
       if (formState?.id) {
         formData.append("id", formState.id);
@@ -178,8 +181,19 @@ const EditVendor = ({
             touched={formik.touched.name}
             {...formik.getFieldProps("name")}
           />
-
+     {/* price Field */}
+     {category &&
+             <InputFields
+              label="Price"
+              placeholder="Enter Price"
+              type="text"
+              error={formik.errors.price}
+              touched={formik.touched.price}
+              {...formik.getFieldProps("price")}
+            />
+     }
           {/* description Field */}
+
           {category &&
              <InputFields
               label="description"
@@ -206,7 +220,7 @@ const EditVendor = ({
           /> */}
 
           {/* Upload Photo */}
-          {!category && (
+          {/* {!category && ( */}
           <div className="mt-4">
             {!formik.values.photo ? (
               // Upload UI
@@ -258,7 +272,7 @@ const EditVendor = ({
               </div>
             )}
           </div>
-          )}
+          {/* )} */}
 
           {/* Buttons */}
           <div className="flex justify-end mt-4">

@@ -416,7 +416,6 @@ import * as Yup from "yup";
 import InputFields from "../../InputFields/InputFields";
 import { uploadButton } from "../../../assets/index";
 
-import { AddResultMutation } from "../../../Services/AddResultService";
 import { EditResultMutation } from "../../../Services/Editservice";
 import toast, { Toaster } from "react-hot-toast";
 import { fetchResults } from "../../../Services/GetResults";
@@ -430,6 +429,209 @@ const EditProductListing = ({
   setFormState,
 }) => {
   const mutation = EditResultMutation(["add-voucher"]);
+  
+  // State for managing country pricing entries
+  const [countryPricingEntries, setCountryPricingEntries] = useState([
+    { country: "", price: "" }
+  ]);
+
+  // Countries list for dropdown
+  const countries = [
+    { value: "af", label: "Afghanistan" },
+    { value: "al", label: "Albania" },
+    { value: "dz", label: "Algeria" },
+    { value: "ad", label: "Andorra" },
+    { value: "ao", label: "Angola" },
+    { value: "ag", label: "Antigua and Barbuda" },
+    { value: "ar", label: "Argentina" },
+    { value: "am", label: "Armenia" },
+    { value: "au", label: "Australia" },
+    { value: "at", label: "Austria" },
+    { value: "az", label: "Azerbaijan" },
+    { value: "bs", label: "Bahamas" },
+    { value: "bh", label: "Bahrain" },
+    { value: "bd", label: "Bangladesh" },
+    { value: "bb", label: "Barbados" },
+    { value: "by", label: "Belarus" },
+    { value: "be", label: "Belgium" },
+    { value: "bz", label: "Belize" },
+    { value: "bj", label: "Benin" },
+    { value: "bt", label: "Bhutan" },
+    { value: "bo", label: "Bolivia" },
+    { value: "ba", label: "Bosnia and Herzegovina" },
+    { value: "bw", label: "Botswana" },
+    { value: "br", label: "Brazil" },
+    { value: "bn", label: "Brunei" },
+    { value: "bg", label: "Bulgaria" },
+    { value: "bf", label: "Burkina Faso" },
+    { value: "bi", label: "Burundi" },
+    { value: "cv", label: "Cabo Verde" },
+    { value: "kh", label: "Cambodia" },
+    { value: "cm", label: "Cameroon" },
+    { value: "ca", label: "Canada" },
+    { value: "cf", label: "Central African Republic" },
+    { value: "td", label: "Chad" },
+    { value: "cl", label: "Chile" },
+    { value: "cn", label: "China" },
+    { value: "co", label: "Colombia" },
+    { value: "km", label: "Comoros" },
+    { value: "cg", label: "Congo" },
+    { value: "cd", label: "Democratic Republic of the Congo" },
+    { value: "cr", label: "Costa Rica" },
+    { value: "hr", label: "Croatia" },
+    { value: "cu", label: "Cuba" },
+    { value: "cy", label: "Cyprus" },
+    { value: "cz", label: "Czechia" },
+    { value: "dk", label: "Denmark" },
+    { value: "dj", label: "Djibouti" },
+    { value: "dm", label: "Dominica" },
+    { value: "do", label: "Dominican Republic" },
+    { value: "ec", label: "Ecuador" },
+    { value: "eg", label: "Egypt" },
+    { value: "sv", label: "El Salvador" },
+    { value: "gq", label: "Equatorial Guinea" },
+    { value: "er", label: "Eritrea" },
+    { value: "ee", label: "Estonia" },
+    { value: "sz", label: "Eswatini" },
+    { value: "et", label: "Ethiopia" },
+    { value: "fj", label: "Fiji" },
+    { value: "fi", label: "Finland" },
+    { value: "fr", label: "France" },
+    { value: "ga", label: "Gabon" },
+    { value: "gm", label: "Gambia" },
+    { value: "ge", label: "Georgia" },
+    { value: "de", label: "Germany" },
+    { value: "gh", label: "Ghana" },
+    { value: "gr", label: "Greece" },
+    { value: "gd", label: "Grenada" },
+    { value: "gt", label: "Guatemala" },
+    { value: "gn", label: "Guinea" },
+    { value: "gw", label: "Guinea-Bissau" },
+    { value: "gy", label: "Guyana" },
+    { value: "ht", label: "Haiti" },
+    { value: "hn", label: "Honduras" },
+    { value: "hu", label: "Hungary" },
+    { value: "is", label: "Iceland" },
+    { value: "in", label: "India" },
+    { value: "id", label: "Indonesia" },
+    { value: "ir", label: "Iran" },
+    { value: "iq", label: "Iraq" },
+    { value: "ie", label: "Ireland" },
+    { value: "il", label: "Israel" },
+    { value: "it", label: "Italy" },
+    { value: "jm", label: "Jamaica" },
+    { value: "jp", label: "Japan" },
+    { value: "jo", label: "Jordan" },
+    { value: "kz", label: "Kazakhstan" },
+    { value: "ke", label: "Kenya" },
+    { value: "ki", label: "Kiribati" },
+    { value: "kw", label: "Kuwait" },
+    { value: "kg", label: "Kyrgyzstan" },
+    { value: "la", label: "Laos" },
+    { value: "lv", label: "Latvia" },
+    { value: "lb", label: "Lebanon" },
+    { value: "ls", label: "Lesotho" },
+    { value: "lr", label: "Liberia" },
+    { value: "ly", label: "Libya" },
+    { value: "li", label: "Liechtenstein" },
+    { value: "lt", label: "Lithuania" },
+    { value: "lu", label: "Luxembourg" },
+    { value: "mg", label: "Madagascar" },
+    { value: "mw", label: "Malawi" },
+    { value: "my", label: "Malaysia" },
+    { value: "mv", label: "Maldives" },
+    { value: "ml", label: "Mali" },
+    { value: "mt", label: "Malta" },
+    { value: "mh", label: "Marshall Islands" },
+    { value: "mr", label: "Mauritania" },
+    { value: "mu", label: "Mauritius" },
+    { value: "mx", label: "Mexico" },
+    { value: "fm", label: "Micronesia" },
+    { value: "md", label: "Moldova" },
+    { value: "mc", label: "Monaco" },
+    { value: "mn", label: "Mongolia" },
+    { value: "me", label: "Montenegro" },
+    { value: "ma", label: "Morocco" },
+    { value: "mz", label: "Mozambique" },
+    { value: "mm", label: "Myanmar" },
+    { value: "na", label: "Namibia" },
+    { value: "nr", label: "Nauru" },
+    { value: "np", label: "Nepal" },
+    { value: "nl", label: "Netherlands" },
+    { value: "nz", label: "New Zealand" },
+    { value: "ni", label: "Nicaragua" },
+    { value: "ne", label: "Niger" },
+    { value: "ng", label: "Nigeria" },
+    { value: "kp", label: "North Korea" },
+    { value: "mk", label: "North Macedonia" },
+    { value: "no", label: "Norway" },
+    { value: "om", label: "Oman" },
+    { value: "pk", label: "Pakistan" },
+    { value: "ps", label: "Palestine State" },
+    { value: "pa", label: "Panama" },
+    { value: "pg", label: "Papua New Guinea" },
+    { value: "py", label: "Paraguay" },
+    { value: "pe", label: "Peru" },
+    { value: "ph", label: "Philippines" },
+    { value: "pl", label: "Poland" },
+    { value: "pt", label: "Portugal" },
+    { value: "qa", label: "Qatar" },
+    { value: "ro", label: "Romania" },
+    { value: "ru", label: "Russia" },
+    { value: "rw", label: "Rwanda" },
+    { value: "kn", label: "Saint Kitts and Nevis" },
+    { value: "lc", label: "Saint Lucia" },
+    { value: "vc", label: "Saint Vincent and the Grenadines" },
+    { value: "ws", label: "Samoa" },
+    { value: "sm", label: "San Marino" },
+    { value: "st", label: "Sao Tome and Principe" },
+    { value: "sa", label: "Saudi Arabia" },
+    { value: "sn", label: "Senegal" },
+    { value: "rs", label: "Serbia" },
+    { value: "sc", label: "Seychelles" },
+    { value: "sl", label: "Sierra Leone" },
+    { value: "sg", label: "Singapore" },
+    { value: "sk", label: "Slovakia" },
+    { value: "si", label: "Slovenia" },
+    { value: "sb", label: "Solomon Islands" },
+    { value: "so", label: "Somalia" },
+    { value: "za", label: "South Africa" },
+    { value: "kr", label: "South Korea" },
+    { value: "ss", label: "South Sudan" },
+    { value: "es", label: "Spain" },
+    { value: "lk", label: "Sri Lanka" },
+    { value: "sd", label: "Sudan" },
+    { value: "sr", label: "Suriname" },
+    { value: "se", label: "Sweden" },
+    { value: "ch", label: "Switzerland" },
+    { value: "sy", label: "Syria" },
+    { value: "tj", label: "Tajikistan" },
+    { value: "tz", label: "Tanzania" },
+    { value: "th", label: "Thailand" },
+    { value: "tl", label: "Timor-Leste" },
+    { value: "tg", label: "Togo" },
+    { value: "to", label: "Tonga" },
+    { value: "tt", label: "Trinidad and Tobago" },
+    { value: "tn", label: "Tunisia" },
+    { value: "tr", label: "Turkey" },
+    { value: "tm", label: "Turkmenistan" },
+    { value: "tv", label: "Tuvalu" },
+    { value: "ug", label: "Uganda" },
+    { value: "ua", label: "Ukraine" },
+    { value: "ae", label: "United Arab Emirates" },
+    { value: "gb", label: "United Kingdom" },
+    { value: "us", label: "United States" },
+    { value: "uy", label: "Uruguay" },
+    { value: "uz", label: "Uzbekistan" },
+    { value: "vu", label: "Vanuatu" },
+    { value: "va", label: "Vatican City" },
+    { value: "ve", label: "Venezuela" },
+    { value: "vn", label: "Vietnam" },
+    { value: "ye", label: "Yemen" },
+    { value: "zm", label: "Zambia" },
+    { value: "zw", label: "Zimbabwe" }
+  ];
+
   // fetch CATEGORY
   const {
     data: categoriesApi,
@@ -464,31 +666,31 @@ const EditProductListing = ({
     return categoryName === "ape uni" || categoryName === "APE UNI";
   };
 
-  // **NEW: Helper function to check if selected category should show country pricing**
-  const shouldShowCountryPricing = (selectedVendorId) => {
+  // Helper function to check if selected category is Alpha Pte
+  const shouldShowAlphaPteFields = (selectedVendorId) => {
     const categoryName = getCategoryNameById(selectedVendorId);
-    return categoryName === "Pearson PTE Voucher";
+    return categoryName === "Alpha Pte";
   };
 
-  // **NEW: Helper function to parse existing country pricing data**
+  // Helper function to check if selected category is Pearson Pte Voucher
+  const shouldShowPearsonPteFields = (selectedVendorId) => {
+    const categoryName = getCategoryNameById(selectedVendorId);
+    return categoryName === "Pearson PTE Voucher" || categoryName === "Pearson Pte Voucher";
+  };
+
+  // Helper function to parse existing country pricing data
   const parseCountryPricingData = (formState) => {
     if (formState?.country_pricing) {
       const countryPricing = typeof formState.country_pricing === 'string' 
         ? JSON.parse(formState.country_pricing) 
         : formState.country_pricing;
       
-      const selectedCountries = Object.keys(countryPricing);
-      return {
-        selectedCountries,
-        pakistanPrice: countryPricing.pakistan ? countryPricing.pakistan.toString() : "",
-        ukPrice: countryPricing.uk ? countryPricing.uk.toString() : "",
-      };
+      return Object.entries(countryPricing).map(([country, price]) => ({
+        country,
+        price: price.toString()
+      }));
     }
-    return {
-      selectedCountries: [],
-      pakistanPrice: "",
-      ukPrice: "",
-    };
+    return [{ country: "", price: "" }];
   };
 
   // Enhanced scroll prevention effect
@@ -527,8 +729,35 @@ const EditProductListing = ({
     };
   }, [isOpen]);
 
-  // **UPDATED: Parse country pricing data for initial values**
-  const countryPricingData = parseCountryPricingData(formState);
+  // Initialize country pricing entries when formState changes
+  useEffect(() => {
+    if (formState && shouldShowPearsonPteFields(formState.category)) {
+      const existingEntries = parseCountryPricingData(formState);
+      setCountryPricingEntries(existingEntries);
+    } else {
+      setCountryPricingEntries([{ country: "", price: "" }]);
+    }
+  }, [formState]);
+
+  // Function to add new country pricing entry
+  const addCountryPricingEntry = () => {
+    setCountryPricingEntries([...countryPricingEntries, { country: "", price: "" }]);
+  };
+
+  // Function to remove country pricing entry
+  const removeCountryPricingEntry = (index) => {
+    if (countryPricingEntries.length > 1) {
+      const updatedEntries = countryPricingEntries.filter((_, i) => i !== index);
+      setCountryPricingEntries(updatedEntries);
+    }
+  };
+
+  // Function to update country pricing entry
+  const updateCountryPricingEntry = (index, field, value) => {
+    const updatedEntries = [...countryPricingEntries];
+    updatedEntries[index][field] = value;
+    setCountryPricingEntries(updatedEntries);
+  };
 
   // Formik Configuration
   const formik = useFormik({
@@ -541,10 +770,9 @@ const EditProductListing = ({
       price: formState?.price || 0, // Price
       status: formState?.status ? "true" : "false", // Convert boolean to string "true"/"false"
       photo: null, // File upload field
-      // **NEW: Country pricing fields**
-      selectedCountries: countryPricingData.selectedCountries, // Array to store selected countries
-      pakistanPrice: countryPricingData.pakistanPrice, // Price for Pakistan
-      ukPrice: countryPricingData.ukPrice, // Price for UK
+      // Alpha Pte fields
+      alphaPteTitle: formState?.title || "",
+      alphaPteValidity: formState?.validity || "",
     },
     enableReinitialize: true, // This allows the form to reinitialize when formState changes
     validationSchema: Yup.object({
@@ -562,40 +790,25 @@ const EditProductListing = ({
         otherwise: (schema) => schema,
       }),
       price: Yup.number().when("vendor", {
-        is: (vendorId) => !shouldShowCountryPricing(vendorId),
+        is: (vendorId) => !shouldShowPearsonPteFields(vendorId),
         then: (schema) => schema
           .typeError("Price must be a number")
           .positive("Price must be positive")
           .required("Price is required"),
-        otherwise: (schema) => schema,
-      }),
-      // **NEW: Country pricing validations**
-      selectedCountries: Yup.array().when("vendor", {
-        is: (vendorId) => shouldShowCountryPricing(vendorId),
-        then: (schema) => schema.min(1, "At least one country must be selected"),
-        otherwise: (schema) => schema,
-      }),
-      pakistanPrice: Yup.string().when(["vendor", "selectedCountries"], {
-        is: (vendorId, selectedCountries) => 
-          shouldShowCountryPricing(vendorId) && selectedCountries?.includes("pakistan"),
-        then: (schema) => schema
-          .required("Pakistan price is required")
-          .test("is-positive", "Price must be positive", (value) => 
-            value && parseFloat(value) > 0
-          ),
-        otherwise: (schema) => schema,
-      }),
-      ukPrice: Yup.string().when(["vendor", "selectedCountries"], {
-        is: (vendorId, selectedCountries) => 
-          shouldShowCountryPricing(vendorId) && selectedCountries?.includes("uk"),
-        then: (schema) => schema
-          .required("UK price is required")
-          .test("is-positive", "Price must be positive", (value) => 
-            value && parseFloat(value) > 0
-          ),
-        otherwise: (schema) => schema,
+        otherwise: (schema) => schema.typeError("Price must be a number"),
       }),
       status: Yup.string().required("Status is required"),
+      // Alpha Pte validations
+      alphaPteTitle: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowAlphaPteFields(vendorId),
+        then: (schema) => schema.required("Title is required"),
+        otherwise: (schema) => schema,
+      }),
+      alphaPteValidity: Yup.string().when("vendor", {
+        is: (vendorId) => shouldShowAlphaPteFields(vendorId),
+        then: (schema) => schema.required("Validity is required"),
+        otherwise: (schema) => schema,
+      }),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -604,30 +817,39 @@ const EditProductListing = ({
       formData.append("description", values.description);
       formData.append("status", values.status === "true" ? "true" : "false"); // Ensure correct value
 
-      // **UPDATED: Price handling for country pricing vs regular price**
-      if (shouldShowCountryPricing(values.vendor)) {
-        // Build country_pricing object
-        const countryPricing = {};
-        if (values.selectedCountries.includes("pakistan") && values.pakistanPrice) {
-          countryPricing.pakistan = parseFloat(values.pakistanPrice);
-        }
-        if (values.selectedCountries.includes("uk") && values.ukPrice) {
-          countryPricing.uk = parseFloat(values.ukPrice);
-        }
-        formData.append("country_pricing", JSON.stringify(countryPricing));
-        formData.append("price", values.price);
-      } else {
-        formData.append("price", values.price);
-      }
-
-      // Only append validity if it should be shown for this category
+      // Handle different category-specific fields
       if (shouldShowValidityField(values.vendor)) {
         formData.append("validity", values.validity);
       }
-
-      // Only append type if it should be shown for this category
+      
       if (shouldShowTypeDropdown(values.vendor)) {
         formData.append("type", values.type);
+      }
+
+      // Alpha Pte fields
+      if (shouldShowAlphaPteFields(values.vendor)) {
+        formData.append("title", values.alphaPteTitle);
+        formData.append("validity", values.alphaPteValidity);
+        formData.append("price", values.price);
+      }
+
+      // Pearson Pte Voucher fields
+      if (shouldShowPearsonPteFields(values.vendor)) {
+        // Build country_pricing object
+        const countryPricing = {};
+        countryPricingEntries.forEach(entry => {
+          if (entry.country && entry.price) {
+            countryPricing[entry.country] = parseFloat(entry.price);
+          }
+        });
+        
+        if (Object.keys(countryPricing).length > 0) {
+          formData.append("country_pricing", JSON.stringify(countryPricing));
+        }
+        formData.append("price", values.price);
+      } else {
+        // For non-Pearson categories, append regular price
+        formData.append("price", values.price);
       }
 
       // Add ID if editing (formState exists and has ID)
@@ -640,7 +862,6 @@ const EditProductListing = ({
         formData.append("image", values.photo);
       }
 
-      const apiPath = formState?.id ? "admin/add-it-voucher/" : "admin/add-it-voucher/";
       const successMessage = formState?.id ? "Voucher updated successfully!" : "Voucher created successfully!";
 
       mutation.mutate(
@@ -652,6 +873,7 @@ const EditProductListing = ({
           onSuccess: (data) => {
             toast.success(successMessage);
             formik.resetForm(); // Reset form after successful submission
+            setCountryPricingEntries([{ country: "", price: "" }]);
             onClose(); // Close modal on success
           },
           onError: (error) => {
@@ -662,7 +884,7 @@ const EditProductListing = ({
     },
   });
 
-  // **UPDATED: Reset fields when vendor changes**
+  // Reset fields when vendor changes
   useEffect(() => {
     if (formik.values.vendor) {
       if (!shouldShowTypeDropdown(formik.values.vendor)) {
@@ -671,18 +893,14 @@ const EditProductListing = ({
       if (!shouldShowValidityField(formik.values.vendor)) {
         formik.setFieldValue("validity", "");
       }
-      // **NEW: Reset country pricing fields when vendor changes**
-      if (!shouldShowCountryPricing(formik.values.vendor)) {
-        formik.setFieldValue("selectedCountries", []);
-        formik.setFieldValue("pakistanPrice", "");
-        formik.setFieldValue("ukPrice", "");
-      } else {
-        // When switching to country pricing, preserve existing country data if available
-        if (formState?.country_pricing && !formik.values.selectedCountries.length) {
-          const existingData = parseCountryPricingData(formState);
-          formik.setFieldValue("selectedCountries", existingData.selectedCountries);
-          formik.setFieldValue("pakistanPrice", existingData.pakistanPrice);
-          formik.setFieldValue("ukPrice", existingData.ukPrice);
+      if (!shouldShowAlphaPteFields(formik.values.vendor)) {
+        formik.setFieldValue("alphaPteTitle", "");
+        formik.setFieldValue("alphaPteValidity", "");
+      }
+      if (shouldShowPearsonPteFields(formik.values.vendor)) {
+        if (!formState?.country_pricing) {
+          formik.setFieldValue("price", "");
+          setCountryPricingEntries([{ country: "", price: "" }]);
         }
       }
     }
@@ -691,30 +909,9 @@ const EditProductListing = ({
   useEffect(() => {
     if (!isOpen) {
       formik.resetForm();
+      setCountryPricingEntries([{ country: "", price: "" }]);
     }
   }, [isOpen]);
-
-  // **NEW: Handle country selection change**
-  const handleCountryChange = (country) => {
-    const currentCountries = formik.values.selectedCountries;
-    let updatedCountries;
-    
-    if (currentCountries.includes(country)) {
-      // Remove country
-      updatedCountries = currentCountries.filter(c => c !== country);
-      // Clear price for removed country
-      if (country === "pakistan") {
-        formik.setFieldValue("pakistanPrice", "");
-      } else if (country === "uk") {
-        formik.setFieldValue("ukPrice", "");
-      }
-    } else {
-      // Add country
-      updatedCountries = [...currentCountries, country];
-    }
-    
-    formik.setFieldValue("selectedCountries", updatedCountries);
-  };
 
   if (!isOpen) return null;
 
@@ -763,7 +960,31 @@ const EditProductListing = ({
               {...formik.getFieldProps("description")}
             />
 
-            {/* Validity Field - Show only for ape uni or APE UNI */}
+            {/* Alpha Pte Title Field */}
+            {shouldShowAlphaPteFields(formik.values.vendor) && (
+              <InputFields
+                label="Title"
+                placeholder="Enter Title"
+                type="text"
+                error={formik.errors.alphaPteTitle}
+                touched={formik.touched.alphaPteTitle}
+                {...formik.getFieldProps("alphaPteTitle")}
+              />
+            )}
+
+            {/* Alpha Pte Validity Field */}
+            {shouldShowAlphaPteFields(formik.values.vendor) && (
+              <InputFields
+                label="Validity"
+                placeholder="Enter Validity"
+                type="text"
+                error={formik.errors.alphaPteValidity}
+                touched={formik.touched.alphaPteValidity}
+                {...formik.getFieldProps("alphaPteValidity")}
+              />
+            )}
+
+            {/* Existing Validity Field - Show only for ape uni or APE UNI */}
             {shouldShowValidityField(formik.values.vendor) && (
               <InputFields
                 label="Validity"
@@ -794,80 +1015,65 @@ const EditProductListing = ({
               />
             )}
 
-            {/* **NEW: Country Selection and Pricing - Show only for Pearson PTE Voucher** */}
-            {shouldShowCountryPricing(formik.values.vendor) && (
+            {/* Pearson Pte Voucher Country Pricing */}
+            {shouldShowPearsonPteFields(formik.values.vendor) && (
               <div className="mt-4">
-                {/* Country Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Countries
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formik.values.selectedCountries.includes("pakistan")}
-                        onChange={() => handleCountryChange("pakistan")}
-                        className="mr-2"
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Country Pricing
+                </label>
+                {countryPricingEntries.map((entry, index) => (
+                  <div key={index} className="flex items-end gap-2 mb-3">
+                    <div className="flex-1">
+                      <InputFields
+                        label={index === 0 ? "Country" : ""}
+                        placeholder="Select Country"
+                        isSelect={true}
+                        options={countries}
+                        value={entry.country}
+                        onChange={(e) => updateCountryPricingEntry(index, "country", e.target.value)}
                       />
-                      Pakistan
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formik.values.selectedCountries.includes("uk")}
-                        onChange={() => handleCountryChange("uk")}
-                        className="mr-2"
+                    </div>
+                    <div className="flex-1">
+                      <InputFields
+                        label={index === 0 ? "Price" : ""}
+                        placeholder="Enter Price"
+                        type="number"
+                        value={entry.price}
+                        onChange={(e) => updateCountryPricingEntry(index, "price", e.target.value)}
                       />
-                      UK
-                    </label>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={addCountryPricingEntry}
+                        className="bg-[#4755E5] text-white rounded-full w-8 h-8 flex justify-center text-lg hover:bg-[#3d4ed8] transition-colors"
+                      >
+                        +
+                      </button>
+                      {countryPricingEntries.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCountryPricingEntry(index)}
+                          className="bg-red-500 text-white rounded-full w-8 h-8 flex  justify-center text-lg hover:bg-red-600 transition-colors"
+                        >
+                          -
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {formik.errors.selectedCountries && formik.touched.selectedCountries && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.selectedCountries}
-                    </p>
-                  )}
-                </div>
-
-                {/* Pakistan Price Field */}
-                {formik.values.selectedCountries.includes("pakistan") && (
-                  <InputFields
-                    label="Pakistan Price"
-                    placeholder="Enter Pakistan Price"
-                    type="number"
-                    step="0.01"
-                    error={formik.errors.pakistanPrice}
-                    touched={formik.touched.pakistanPrice}
-                    {...formik.getFieldProps("pakistanPrice")}
-                  />
-                )}
-
-                {/* UK Price Field */}
-                {formik.values.selectedCountries.includes("uk") && (
-                  <InputFields
-                    label="UK Price"
-                    placeholder="Enter UK Price"
-                    type="number"
-                    step="0.01"
-                    error={formik.errors.ukPrice}
-                    touched={formik.touched.ukPrice}
-                    {...formik.getFieldProps("ukPrice")}
-                  />
-                )}
+                ))}
               </div>
             )}
 
-            {/* **UPDATED: Regular Price Field - Show only when NOT using country pricing** */}
-            {/* {!shouldShowCountryPricing(formik.values.vendor) && ( */}
-              <InputFields
-                label="Price"
-                placeholder="Enter Price"
-                type="number"
-                error={formik.errors.price}
-                touched={formik.touched.price}
-                {...formik.getFieldProps("price")}
-              />
-            {/* )} */}
+            {/* Regular Price Field */}
+            <InputFields
+              label="Price"
+              placeholder="Enter Price"
+              type="number"
+              error={formik.errors.price}
+              touched={formik.touched.price}
+              {...formik.getFieldProps("price")}
+            />
 
             {/* Status Dropdown */}
             <InputFields
